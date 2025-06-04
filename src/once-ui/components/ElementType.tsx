@@ -20,7 +20,7 @@ const ElementType = forwardRef<HTMLElement, ElementTypeProps>(
       const isExternal = isExternalLink(href);
       if (isExternal) {
         return (
-          <a
+          <Link
             href={href}
             target="_blank"
             rel="noreferrer"
@@ -31,7 +31,7 @@ const ElementType = forwardRef<HTMLElement, ElementTypeProps>(
             {...(props as React.AnchorHTMLAttributes<HTMLAnchorElement>)}
           >
             {children}
-          </a>
+          </Link>
         );
       }
       return (

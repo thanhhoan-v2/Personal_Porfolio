@@ -1,5 +1,8 @@
 import { Logo } from "@/once-ui/components";
 
+const firstName = "Phan Đỉnh";
+const lastName = "Thanh Hoàn";
+
 const person = {
   firstName: "Phan Đỉnh",
   lastName: "Thanh Hoàn",
@@ -54,7 +57,7 @@ const home = {
   path: "/",
   image: "/images/og/home.jpg",
   label: "Home",
-  title: `${person.name}'s Portfolio`,
+  title: `${lastName}'s Portfolio`,
   description: `Portfolio website showcasing my work as a ${person.role}`,
   headline: <>Phan Đỉnh Thanh Hoàn</>,
   featured: {
@@ -72,8 +75,8 @@ const home = {
 const about = {
   path: "/about",
   label: "About",
-  title: `See more about me`,
-  description: `Meet ${person.name}, ${person.role} from ${person.location}`,
+  title: `About ${lastName.split(" ").pop()}`,
+  description: `Meet ${firstName} ${lastName}, ${person.role} from ${person.location}`,
   tableOfContent: {
     display: true,
     subItems: false,
@@ -223,8 +226,8 @@ const about = {
 const blog = {
   path: "/blog",
   label: "Blog",
-  title: "Writing about software engineering...",
-  description: `Read what ${person.name} has been up to recently`,
+  title: `${lastName}'s Blog`,
+  description: `Read what ${firstName} ${lastName} has been up to recently`,
   // Create new blog posts by adding a new .mdx file to app/blog/posts
   // All posts will be listed on the /blog route
 };
@@ -232,8 +235,8 @@ const blog = {
 const work = {
   path: "/work",
   label: "Projects",
-  title: `Projects – ${person.name}`,
-  description: `Design and dev projects by ${person.name}`,
+  title: `${lastName}'s Projects`,
+  description: `Design and dev projects by ${firstName} ${lastName}`,
   // Create new project pages by adding a new .mdx file to app/blog/posts
   // All projects will be listed on the /home and /work routes
 };

@@ -32,14 +32,14 @@ export default function Blog() {
         }}
       />
       <Heading marginBottom="l" variant="display-strong-s">
-        {blog.title}
+        Writing about software engineering ✍🏻
       </Heading>
       <Column
-				fillWidth flex={1}>
-				<Posts range={[1,1]} thumbnail direction="column"/>
-				<Posts range={[2,3]} thumbnail/>
-				<Posts range={[4]} columns="2"/>
-			</Column>
+        fillWidth flex={1}>
+        <Posts range={[1, 1]} thumbnail direction="column" />
+        <Posts range={[2, 3]} thumbnail />
+        <Posts range={[4]} columns="2" />
+      </Column>
       {/* {newsletter.display && <Mailchimp newsletter={newsletter} />} */}
     </Column>
   );
