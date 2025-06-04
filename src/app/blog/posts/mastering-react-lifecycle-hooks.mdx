@@ -1,0 +1,482 @@
+---
+title: "Mastering React Lifecycle: From Class Components to Modern Hooks"
+summary: "After years of building React applications, I've learned that understanding component lifecycle isn't just about memorizing methods—it's about thinking in React. Here's my journey from confusion to clarity with practical examples that actually matter."
+image: "/images/blog/react-lifecycle.png"
+publishedAt: "2025-01-15"
+tag: "React.js"
+---
+
+After years of building React applications, I've learned that understanding component lifecycle isn't just about memorizing methods—it's about thinking in React. When I first started, I treated lifecycle methods like magical incantations, copy-pasting `componentDidMount` without really understanding why. Today, I want to share the mental models and practical patterns that transformed how I approach React development.
+
+## 1. The Evolution: From Class Components to Hooks
+
+Let me be honest—when hooks were introduced, I was skeptical. I had just gotten comfortable with class components, and here was React asking me to completely rewire my brain. But looking back, hooks didn't just change how we write React; they changed how we think about component behavior.
+
+### The Old Way: Class Component Lifecycle
+
+Here's how I used to handle a typical data-fetching component:
+
+<CodeBlock
+    marginBottom="16"
+    codeInstances={[
+  {
+    code:
+`class UserProfile extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      user: null,
+      loading: true,
+      error: null
+    };
+  }
+
+  async componentDidMount() {
+    try {
+      const response = await fetch(\`/api/users/\${this.props.userId}\`);
+      const user = await response.json();
+      this.setState({ user, loading: false });
+    } catch (error) {
+      this.setState({ error: error.message, loading: false });
+    }
+  }
+
+  async componentDidUpdate(prevProps) {
+    if (prevProps.userId !== this.props.userId) {
+      this.setState({ loading: true, error: null });
+      try {
+        const response = await fetch(\`/api/users/\${this.props.userId}\`);
+        const user = await response.json();
+        this.setState({ user, loading: false });
+      } catch (error) {
+        this.setState({ error: error.message, loading: false });
+      }
+    }
+  }
+
+  render() {
+    const { user, loading, error } = this.state;
+    
+    if (loading) return <div>Loading...</div>;
+    if (error) return <div>Error: {error}</div>;
+    if (!user) return <div>User not found</div>;
+    
+    return (
+      <div>
+        <h1>{user.name}</h1>
+        <p>{user.email}</p>
+      </div>
+    );
+  }
+}`,
+    language: "jsx",
+    label: "components/UserProfile.jsx"
+  }
+]} />
+
+This works, but there's so much boilerplate! I'm duplicating the fetch logic, managing loading states manually, and the component is getting unwieldy.
+
+### The Modern Way: Hooks and Effects
+
+Here's how I'd write the same component today:
+
+<CodeBlock
+    marginBottom="16"
+    codeInstances={[
+  {
+    code:
+`import { useState, useEffect } from 'react';
+
+function UserProfile({ userId }) {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchUser() {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await fetch(\`/api/users/\${userId}\`);
+        const userData = await response.json();
+        
+        if (!cancelled) {
+          setUser(userData);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(err.message);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
+    fetchUser();
+
+    // Cleanup function - this is like componentWillUnmount
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]); // Dependency array - re-run when userId changes
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
+  if (!user) return <div>User not found</div>;
+
+  return (
+    <div>
+      <h1>{user.name}</h1>
+      <p>{user.email}</p>
+    </div>
+  );
+}`,
+    language: "jsx",
+    label: "components/UserProfile.jsx"
+  }
+]} />
+
+Much cleaner! The `useEffect` hook replaces multiple lifecycle methods with a single, more intuitive API.
+
+## 2. Understanding useEffect: The Heart of Modern React
+
+`useEffect` confused me initially because it doesn't map 1:1 to class lifecycle methods. The breakthrough came when I stopped thinking about "when things happen" and started thinking about "what things depend on."
+
+### Effect Dependencies: The Mental Model That Changed Everything
+
+<CodeBlock
+    marginBottom="16"
+    codeInstances={[
+  {
+    code:
+`function SearchResults({ query, filters }) {
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  // Effect 1: Search when query or filters change
+  useEffect(() => {
+    if (!query.trim()) {
+      setResults([]);
+      return;
+    }
+
+    const searchController = new AbortController();
+    
+    async function performSearch() {
+      setLoading(true);
+      try {
+        const response = await fetch('/api/search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query, filters }),
+          signal: searchController.signal
+        });
+        const data = await response.json();
+        setResults(data.results);
+      } catch (error) {
+        if (error.name !== 'AbortError') {
+          console.error('Search failed:', error);
+        }
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    performSearch();
+
+    return () => {
+      searchController.abort();
+    };
+  }, [query, filters]); // Re-run when query OR filters change
+
+  // Effect 2: Update document title
+  useEffect(() => {
+    const originalTitle = document.title;
+    document.title = query ? \`Search: \${query}\` : 'Search';
+    
+    return () => {
+      document.title = originalTitle;
+    };
+  }, [query]);
+
+  return (
+    <div>
+      {loading && <div>Searching...</div>}
+      {results.map(result => (
+        <div key={result.id}>{result.title}</div>
+      ))}
+    </div>
+  );
+}`,
+    language: "jsx",
+    label: "components/SearchResults.jsx"
+  }
+]} />
+
+Notice how I'm using multiple effects for different concerns. This is much more maintainable than cramming everything into one `componentDidUpdate`.
+
+## 3. Custom Hooks: Reusable Lifecycle Logic
+
+One of my favorite discoveries has been custom hooks. They let me extract and reuse complex lifecycle logic across components.
+
+### A Real-World Example: useFetch Hook
+
+<CodeBlock
+    marginBottom="16"
+    codeInstances={[
+  {
+    code:
+`import { useState, useEffect, useRef } from 'react';
+
+function useFetch(url, options = {}) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
+  // Use useRef to track if component is still mounted
+  const mountedRef = useRef(true);
+  
+  useEffect(() => {
+    let controller = new AbortController();
+    
+    async function fetchData() {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        const response = await fetch(url, {
+          ...options,
+          signal: controller.signal
+        });
+        
+        if (!response.ok) {
+          throw new Error(\`HTTP error! status: \${response.status}\`);
+        }
+        
+        const result = await response.json();
+        
+        if (mountedRef.current) {
+          setData(result);
+        }
+      } catch (err) {
+        if (mountedRef.current && err.name !== 'AbortError') {
+          setError(err.message);
+        }
+      } finally {
+        if (mountedRef.current) {
+          setLoading(false);
+        }
+      }
+    }
+    
+    fetchData();
+    
+    return () => {
+      controller.abort();
+    };
+  }, [url, JSON.stringify(options)]);
+  
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+  
+  return { data, loading, error, refetch: () => setLoading(true) };
+}
+
+// Using the custom hook
+function UserList() {
+  const { data: users, loading, error } = useFetch('/api/users');
+  
+  if (loading) return <div>Loading users...</div>;
+  if (error) return <div>Error: {error}</div>;
+  
+  return (
+    <ul>
+      {users?.map(user => (
+        <li key={user.id}>{user.name}</li>
+      ))}
+    </ul>
+  );
+}`,
+    language: "jsx",
+    label: "hooks/useFetch.js"
+  }
+]} />
+
+This pattern has saved me hundreds of lines of repetitive code across projects.
+
+## 4. Advanced Patterns: Optimizing Performance
+
+As my applications grew more complex, I learned that not all effects should run on every render. Here are the patterns I use to optimize performance:
+
+### useCallback and useMemo with Effects
+
+<CodeBlock
+    marginBottom="16"
+    codeInstances={[
+  {
+    code:
+`import { useState, useEffect, useCallback, useMemo } from 'react';
+
+function ExpensiveComponent({ items, filters, onItemSelect }) {
+  const [selectedItems, setSelectedItems] = useState([]);
+  
+  // Memoize expensive calculations
+  const filteredItems = useMemo(() => {
+    console.log('Filtering items...');
+    return items.filter(item => {
+      return Object.entries(filters).every(([key, value]) => {
+        return value === '' || item[key]?.toLowerCase().includes(value.toLowerCase());
+      });
+    });
+  }, [items, filters]);
+  
+  // Memoize callback to prevent unnecessary re-renders
+  const handleItemClick = useCallback((item) => {
+    setSelectedItems(prev => {
+      const isSelected = prev.find(selected => selected.id === item.id);
+      if (isSelected) {
+        return prev.filter(selected => selected.id !== item.id);
+      }
+      return [...prev, item];
+    });
+    onItemSelect?.(item);
+  }, [onItemSelect]);
+  
+  // Effect that only runs when selected items change
+  useEffect(() => {
+    if (selectedItems.length > 0) {
+      console.log(\`Selected \${selectedItems.length} items\`);
+      // Maybe save to localStorage or send analytics
+      localStorage.setItem('selectedItems', JSON.stringify(selectedItems));
+    }
+  }, [selectedItems]);
+  
+  return (
+    <div>
+      <h2>Filtered Items ({filteredItems.length})</h2>
+      {filteredItems.map(item => (
+        <div 
+          key={item.id} 
+          onClick={() => handleItemClick(item)}
+          className={selectedItems.find(s => s.id === item.id) ? 'selected' : ''}
+        >
+          {item.name}
+        </div>
+      ))}
+    </div>
+  );
+}`,
+    language: "jsx",
+    label: "components/ExpensiveComponent.jsx"
+  }
+]} />
+
+## 5. Common Pitfalls I've Learned to Avoid
+
+### Memory Leaks and Cleanup
+
+The biggest mistake I made early on was forgetting to clean up subscriptions and timers:
+
+<CodeBlock
+    marginBottom="16"
+    codeInstances={[
+  {
+    code:
+`// ❌ Bad: Memory leak waiting to happen
+function BadTimer() {
+  const [count, setCount] = useState(0);
+  
+  useEffect(() => {
+    setInterval(() => {
+      setCount(prev => prev + 1);
+    }, 1000);
+  }, []); // Missing cleanup!
+  
+  return <div>Count: {count}</div>;
+}
+
+// ✅ Good: Proper cleanup
+function GoodTimer() {
+  const [count, setCount] = useState(0);
+  
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCount(prev => prev + 1);
+    }, 1000);
+    
+    // Always clean up!
+    return () => {
+      clearInterval(timer);
+    };
+  }, []);
+  
+  return <div>Count: {count}</div>;
+}`,
+    language: "jsx",
+    label: "components/TimerExample.jsx"
+  }
+]} />
+
+### Infinite Effect Loops
+
+Another common trap is creating infinite effect loops:
+
+<CodeBlock
+    marginBottom="16"
+    codeInstances={[
+  {
+    code:
+`// ❌ Bad: Creates infinite loop
+function BadEffect({ user }) {
+  const [userData, setUserData] = useState({});
+  
+  useEffect(() => {
+    // This creates a new object on every render!
+    setUserData({ ...user, lastSeen: new Date() });
+  }, [userData]); // userData changes on every render
+  
+  return <div>{userData.name}</div>;
+}
+
+// ✅ Good: Stable dependencies
+function GoodEffect({ user }) {
+  const [lastSeen, setLastSeen] = useState(new Date());
+  
+  useEffect(() => {
+    setLastSeen(new Date());
+  }, [user.id]); // Only re-run when user ID changes
+  
+  return (
+    <div>
+      {user.name} - Last seen: {lastSeen.toLocaleTimeString()}
+    </div>
+  );
+}`,
+    language: "jsx",
+    label: "components/EffectExample.jsx"
+  }
+]} />
+
+## Conclusion: Embracing the Hook Mindset
+
+The journey from class components to hooks taught me more than just new syntax—it taught me to think differently about component behavior. Instead of thinking about when things happen (mount, update, unmount), I now think about what things depend on and how they should respond to changes.
+
+The key insights that transformed my React development:
+
+1. **Effects are about synchronization**, not lifecycle events
+2. **Dependencies drive when effects run**, not component phases
+3. **Custom hooks make complex logic reusable** and testable
+4. **Cleanup is crucial** for preventing memory leaks
+5. **Multiple small effects** are better than one large effect
+
+These patterns have made my React applications more predictable, maintainable, and performant. The lifecycle isn't something to fight against—it's a powerful tool for building reactive user interfaces that respond elegantly to change.
+
+Whether you're still using class components or diving deep into hooks, remember that mastering React lifecycle is really about mastering the art of managing change in your applications. And trust me, once this mental model clicks, you'll never want to go back to the old way of thinking about components. 

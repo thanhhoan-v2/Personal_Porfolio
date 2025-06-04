@@ -1,0 +1,817 @@
+---
+title: "Building Scalable Systems: A Complete Guide to Modern System Architecture"
+summary: "System architecture is the backbone of any successful application. Whether you're building a startup MVP or designing enterprise-grade software, understanding core architectural principles can make the difference between a system that thrives under pressure and one that crumbles at scale."
+image: "/images/blog/system-architecture.png"
+publishedAt: "2025-05-07"
+tag: "System Architecture"
+---
+
+System architecture is the backbone of any successful application. Whether you're building a startup MVP or designing enterprise-grade software, understanding core architectural principles can make the difference between a system that thrives under pressure and one that crumbles at scale. This guide explores essential patterns, trade-offs, and practical implementations that every developer should master.
+
+## 1. Microservices vs Monolithic Architecture
+
+The age-old debate continues, but the choice depends on your specific context and constraints.
+
+### Monolithic Architecture
+
+Start with a monolith when you have a small team, unclear requirements, or need rapid prototyping.
+
+<CodeBlock
+    marginBottom="16"
+    codeInstances={[
+  {
+    code:
+`// Express.js monolithic structure
+const express = require('express');
+const app = express();
+
+// All services in one application
+app.use('/api/users', require('./routes/users'));
+app.use('/api/orders', require('./routes/orders'));
+app.use('/api/payments', require('./routes/payments'));
+app.use('/api/inventory', require('./routes/inventory'));
+
+// Shared database connection
+const db = require('./config/database');
+app.locals.db = db;
+
+app.listen(3000, () => {
+  console.log('Monolithic app running on port 3000');
+});`,
+    language: "javascript",
+    label: "src/app.js"
+  }
+]} />
+
+### Microservices Architecture
+
+Transition to microservices when you have clear service boundaries and need independent scaling.
+
+<CodeBlock
+    marginBottom="16"
+    codeInstances={[
+  {
+    code:
+`// User Service
+const express = require('express');
+const app = express();
+
+app.get('/users/:id', async (req, res) => {
+  try {
+    const user = await userService.findById(req.params.id);
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ error: 'User service unavailable' });
+  }
+});
+
+// Service discovery and health checks
+app.get('/health', (req, res) => {
+  res.json({ status: 'healthy', service: 'user-service' });
+});
+
+app.listen(process.env.PORT || 3001);`,
+    language: "javascript",
+    label: "services/user-service/app.js"
+  }
+]} />
+
+**When to choose what:**
+- **Monolith**: Small teams, rapid prototyping, unclear domain boundaries
+- **Microservices**: Large teams, well-defined domains, independent scaling needs
+
+## 2. Database Architecture Patterns
+
+Your data architecture choices will significantly impact performance, consistency, and scalability.
+
+### Database Per Service Pattern
+
+Each microservice owns its data and database schema.
+
+<CodeBlock
+    marginBottom="16"
+    codeInstances={[
+  {
+    code:
+`// User Service Database Schema
+const userSchema = {
+  users: {
+    id: 'UUID PRIMARY KEY',
+    email: 'VARCHAR(255) UNIQUE',
+    password_hash: 'VARCHAR(255)',
+    profile: 'JSONB',
+    created_at: 'TIMESTAMP',
+    updated_at: 'TIMESTAMP'
+  }
+};
+
+// Order Service Database Schema  
+const orderSchema = {
+  orders: {
+    id: 'UUID PRIMARY KEY',
+    user_id: 'UUID', // Foreign key reference
+    status: 'VARCHAR(50)',
+    items: 'JSONB',
+    total_amount: 'DECIMAL(10,2)',
+    created_at: 'TIMESTAMP'
+  }
+};`,
+    language: "javascript",
+    label: "database/schemas.js"
+  }
+]} />
+
+### CQRS (Command Query Responsibility Segregation)
+
+Separate read and write operations for optimal performance.
+
+<CodeBlock
+    marginBottom="16"
+    codeInstances={[
+  {
+    code:
+`// Command Side - Write Operations
+class OrderCommandHandler {
+  async createOrder(command) {
+    const order = new Order(command.data);
+    await this.writeRepository.save(order);
+    
+    // Publish event for read model update
+    await this.eventBus.publish(new OrderCreatedEvent(order));
+  }
+  
+  async updateOrderStatus(command) {
+    const order = await this.writeRepository.findById(command.orderId);
+    order.updateStatus(command.status);
+    await this.writeRepository.save(order);
+    
+    await this.eventBus.publish(new OrderStatusUpdatedEvent(order));
+  }
+}
+
+// Query Side - Read Operations
+class OrderQueryHandler {
+  async getOrderById(query) {
+    return await this.readRepository.findById(query.orderId);
+  }
+  
+  async getOrdersByUser(query) {
+    return await this.readRepository.findByUserId(query.userId);
+  }
+}`,
+    language: "javascript",
+    label: "handlers/OrderHandlers.js"
+  }
+]} />
+
+## 3. Event-Driven Architecture
+
+Build resilient systems that can handle failures gracefully and scale independently.
+
+### Event Sourcing Implementation
+
+<CodeBlock
+    marginBottom="16"
+    codeInstances={[
+  {
+    code:
+`class EventStore {
+  async appendEvents(streamId, events, expectedVersion) {
+    const transaction = await this.db.beginTransaction();
+    
+    try {
+      // Check version for optimistic concurrency
+      const currentVersion = await this.getCurrentVersion(streamId);
+      if (currentVersion !== expectedVersion) {
+        throw new ConcurrencyError('Stream version mismatch');
+      }
+      
+      // Append events
+      for (const event of events) {
+        await this.db.query(
+          'INSERT INTO events (stream_id, event_type, event_data, version) VALUES (?, ?, ?, ?)',
+          [streamId, event.type, JSON.stringify(event.data), ++currentVersion]
+        );
+      }
+      
+      await transaction.commit();
+      
+      // Publish events to message bus
+      await this.publishEvents(events);
+      
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
+    }
+  }
+  
+  async getEvents(streamId, fromVersion = 0) {
+    const result = await this.db.query(
+      'SELECT * FROM events WHERE stream_id = ? AND version > ? ORDER BY version',
+      [streamId, fromVersion]
+    );
+    
+    return result.map(row => ({
+      type: row.event_type,
+      data: JSON.parse(row.event_data),
+      version: row.version,
+      timestamp: row.created_at
+    }));
+  }
+}`,
+    language: "javascript",
+    label: "infrastructure/EventStore.js"
+  }
+]} />
+
+### Message Queue Integration
+
+<CodeBlock
+    marginBottom="16"
+    codeInstances={[
+  {
+    code:
+`// Publisher
+class EventPublisher {
+  constructor(messageQueue) {
+    this.messageQueue = messageQueue;
+  }
+  
+  async publishEvent(event) {
+    const message = {
+      id: uuid.v4(),
+      type: event.constructor.name,
+      data: event.data,
+      timestamp: new Date().toISOString(),
+      metadata: {
+        correlationId: event.correlationId,
+        causationId: event.causationId
+      }
+    };
+    
+    await this.messageQueue.publish('events', message);
+  }
+}
+
+// Subscriber
+class EventSubscriber {
+  constructor(messageQueue, handlers) {
+    this.messageQueue = messageQueue;
+    this.handlers = handlers;
+  }
+  
+  async subscribe() {
+    await this.messageQueue.subscribe('events', async (message) => {
+      try {
+        const handler = this.handlers[message.type];
+        if (handler) {
+          await handler.handle(message);
+        }
+        
+        // Acknowledge message processing
+        await this.messageQueue.ack(message);
+        
+      } catch (error) {
+        console.error('Event handling failed:', error);
+        // Dead letter queue for failed messages
+        await this.messageQueue.nack(message);
+      }
+    });
+  }
+}`,
+    language: "javascript",
+    label: "messaging/EventMessaging.js"
+  }
+]} />
+
+## 4. API Gateway Pattern
+
+Centralize cross-cutting concerns and provide a unified interface to clients.
+
+<CodeBlock
+    marginBottom="16"
+    codeInstances={[
+  {
+    code:
+`const express = require('express');
+const httpProxy = require('http-proxy-middleware');
+const rateLimit = require('express-rate-limit');
+const jwt = require('jsonwebtoken');
+
+const app = express();
+
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100 // limit each IP to 100 requests per windowMs
+});
+
+app.use(limiter);
+
+// Authentication middleware
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  
+  if (!token) {
+    return res.sendStatus(401);
+  }
+  
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) return res.sendStatus(403);
+    req.user = user;
+    next();
+  });
+};
+
+// Service routing with load balancing
+const userServiceProxy = httpProxy({
+  target: 'http://user-service:3001',
+  changeOrigin: true,
+  pathRewrite: { '^/api/users': '' },
+  onError: (err, req, res) => {
+    console.error('User service error:', err);
+    res.status(503).json({ error: 'User service unavailable' });
+  }
+});
+
+const orderServiceProxy = httpProxy({
+  target: 'http://order-service:3002',
+  changeOrigin: true,
+  pathRewrite: { '^/api/orders': '' }
+});
+
+// Protected routes
+app.use('/api/users', authenticateToken, userServiceProxy);
+app.use('/api/orders', authenticateToken, orderServiceProxy);
+
+// Health check aggregation
+app.get('/health', async (req, res) => {
+  const services = ['user-service', 'order-service', 'payment-service'];
+  const healthChecks = await Promise.allSettled(
+    services.map(service => checkServiceHealth(service))
+  );
+  
+  const overallHealth = healthChecks.every(check => 
+    check.status === 'fulfilled' && check.value.healthy
+  );
+  
+  res.json({
+    status: overallHealth ? 'healthy' : 'degraded',
+    services: healthChecks
+  });
+});`,
+    language: "javascript",
+    label: "api-gateway/server.js"
+  }
+]} />
+
+## 5. Caching Strategies
+
+Implement multi-layer caching for optimal performance.
+
+### Redis Caching Implementation
+
+<CodeBlock
+    marginBottom="16"
+    codeInstances={[
+  {
+    code:
+`const redis = require('redis');
+const client = redis.createClient();
+
+class CacheService {
+  constructor() {
+    this.defaultTTL = 3600; // 1 hour
+  }
+  
+  // Cache-Aside Pattern
+  async get(key) {
+    try {
+      const cached = await client.get(key);
+      return cached ? JSON.parse(cached) : null;
+    } catch (error) {
+      console.error('Cache get error:', error);
+      return null;
+    }
+  }
+  
+  async set(key, value, ttl = this.defaultTTL) {
+    try {
+      await client.setex(key, ttl, JSON.stringify(value));
+    } catch (error) {
+      console.error('Cache set error:', error);
+    }
+  }
+  
+  // Write-Through Pattern
+  async writeThrough(key, value, persistFunction) {
+    try {
+      // Write to database first
+      const result = await persistFunction(value);
+      
+      // Then update cache
+      await this.set(key, result);
+      
+      return result;
+    } catch (error) {
+      // If DB write fails, don't cache
+      throw error;
+    }
+  }
+  
+  // Cache invalidation
+  async invalidate(pattern) {
+    try {
+      const keys = await client.keys(pattern);
+      if (keys.length > 0) {
+        await client.del(...keys);
+      }
+    } catch (error) {
+      console.error('Cache invalidation error:', error);
+    }
+  }
+  
+  // Distributed cache with tags
+  async setWithTags(key, value, tags = [], ttl = this.defaultTTL) {
+    const multi = client.multi();
+    
+    // Set the main key
+    multi.setex(key, ttl, JSON.stringify(value));
+    
+    await multi.exec();
+  }
+}`,
+    language: "javascript",
+    label: "services/CacheService.js"
+  }
+]} />
+
+## 6. Circuit Breaker Pattern
+
+Prevent cascading failures and improve system resilience.
+
+<CodeBlock
+    marginBottom="16"
+    codeInstances={[
+  {
+    code:
+`class CircuitBreaker {
+  constructor(options = {}) {
+    this.failureThreshold = options.failureThreshold || 5;
+    this.resetTimeout = options.resetTimeout || 60000;
+    this.monitoringPeriod = options.monitoringPeriod || 10000;
+    
+    this.state = 'CLOSED'; // CLOSED, OPEN, HALF_OPEN
+    this.failures = 0;
+    this.nextAttempt = Date.now();
+    this.successCount = 0;
+  }
+  
+  async execute(operation) {
+    if (this.state === 'OPEN') {
+      if (Date.now() < this.nextAttempt) {
+        throw new Error('Circuit breaker is OPEN');
+      }
+      // Move to half-open state
+      this.state = 'HALF_OPEN';
+      this.successCount = 0;
+    }
+    
+    try {
+      const result = await operation();
+      this.onSuccess();
+      return result;
+    } catch (error) {
+      this.onFailure();
+      throw error;
+    }
+  }
+  
+  onSuccess() {
+    this.failures = 0;
+    
+    if (this.state === 'HALF_OPEN') {
+      this.successCount++;
+      if (this.successCount >= 3) {
+        this.state = 'CLOSED';
+      }
+    }
+  }
+  
+  onFailure() {
+    this.failures++;
+    
+    if (this.failures >= this.failureThreshold) {
+      this.state = 'OPEN';
+      this.nextAttempt = Date.now() + this.resetTimeout;
+    }
+  }
+  
+  getState() {
+    return {
+      state: this.state,
+      failures: this.failures,
+      nextAttempt: this.nextAttempt
+    };
+  }
+}
+
+// Usage with external service calls
+class ExternalServiceClient {
+  constructor() {
+    this.circuitBreaker = new CircuitBreaker({
+      failureThreshold: 3,
+      resetTimeout: 30000
+    });
+  }
+  
+  async makeRequest(url, options) {
+    return await this.circuitBreaker.execute(async () => {
+      const response = await fetch(url, {
+        ...options,
+        timeout: 5000
+      });
+      
+      if (!response.ok) {
+        throw new Error("HTTP " + response.status + ": " + response.statusText);
+      }
+      
+      return await response.json();
+    });
+  }
+}`,
+    language: "javascript",
+    label: "patterns/CircuitBreaker.js"
+  }
+]} />
+
+## 7. Monitoring and Observability
+
+Implement comprehensive monitoring for production systems.
+
+<CodeBlock
+    marginBottom="16"
+    codeInstances={[
+  {
+    code:
+`const prometheus = require('prom-client');
+
+// Custom metrics
+const httpRequestDuration = new prometheus.Histogram({
+  name: 'http_request_duration_seconds',
+  help: 'HTTP request duration in seconds',
+  labelNames: ['method', 'route', 'status_code'],
+  buckets: [0.1, 0.3, 0.5, 0.7, 1, 3, 5, 7, 10]
+});
+
+const httpRequestsTotal = new prometheus.Counter({
+  name: 'http_requests_total',
+  help: 'Total HTTP requests',
+  labelNames: ['method', 'route', 'status_code']
+});
+
+const activeConnections = new prometheus.Gauge({
+  name: 'active_connections',
+  help: 'Number of active connections'
+});
+
+// Middleware for metrics collection
+const metricsMiddleware = (req, res, next) => {
+  const start = Date.now();
+  
+  res.on('finish', () => {
+    const duration = (Date.now() - start) / 1000;
+    const labels = {
+      method: req.method,
+      route: req.route?.path || req.path,
+      status_code: res.statusCode
+    };
+    
+    httpRequestDuration.observe(labels, duration);
+    httpRequestsTotal.inc(labels);
+  });
+  
+  next();
+};
+
+// Health check with detailed status
+app.get('/health', async (req, res) => {
+  const checks = {
+    database: await checkDatabase(),
+    cache: await checkCache(),
+    externalServices: await checkExternalServices(),
+    memory: process.memoryUsage(),
+    uptime: process.uptime()
+  };
+  
+  const isHealthy = Object.values(checks).every(check => 
+    typeof check === 'object' ? check.status === 'ok' : check
+  );
+  
+  res.status(isHealthy ? 200 : 503).json({
+    status: isHealthy ? 'healthy' : 'unhealthy',
+    timestamp: new Date().toISOString(),
+    checks
+  });
+});
+
+// Structured logging
+const logger = require('winston');
+
+const structuredLogger = logger.createLogger({
+  format: logger.format.combine(
+    logger.format.timestamp(),
+    logger.format.errors({ stack: true }),
+    logger.format.json()
+  ),
+  defaultMeta: { service: 'user-service' },
+  transports: [
+    new logger.transports.File({ filename: 'error.log', level: 'error' }),
+    new logger.transports.File({ filename: 'combined.log' })
+  ]
+});
+
+// Request tracing
+const generateTraceId = () => require('crypto').randomBytes(16).toString('hex');
+
+const tracingMiddleware = (req, res, next) => {
+  req.traceId = req.headers['x-trace-id'] || generateTraceId();
+  res.setHeader('x-trace-id', req.traceId);
+  
+  structuredLogger.info('Request started', {
+    traceId: req.traceId,
+    method: req.method,
+    url: req.url,
+    userAgent: req.headers['user-agent']
+  });
+  
+  next();
+};`,
+    language: "javascript",
+    label: "middleware/monitoring.js"
+  }
+]} />
+
+## 8. Security Architecture
+
+Implement security at every layer of your system.
+
+<CodeBlock
+    marginBottom="16"
+    codeInstances={[
+  {
+    code:
+`const crypto = require('crypto');
+const bcrypt = require('bcrypt');
+const helmet = require('helmet');
+
+// Security middleware
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "https:"]
+    }
+  },
+  hsts: {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true
+  }
+}));
+
+// Input validation and sanitization
+const validator = require('validator');
+
+const validateInput = (schema) => (req, res, next) => {
+  const errors = [];
+  
+  for (const [field, rules] of Object.entries(schema)) {
+    const value = req.body[field];
+    
+    if (rules.required && !value) {
+      errors.push(field + " is required");
+      continue;
+    }
+    
+    if (value) {
+      if (rules.type === 'email' && !validator.isEmail(value)) {
+        errors.push(field + " must be a valid email");
+      }
+      
+      if (rules.minLength && value.length < rules.minLength) {
+        errors.push(field + " must be at least " + rules.minLength + " characters");
+      }
+      
+      if (rules.pattern && !rules.pattern.test(value)) {
+        errors.push(field + " format is invalid");
+      }
+    }
+  }
+  
+  if (errors.length > 0) {
+    return res.status(400).json({ errors });
+  }
+  
+  next();
+};
+
+// Password hashing service
+class PasswordService {
+  static async hash(password) {
+    const saltRounds = 12;
+    return await bcrypt.hash(password, saltRounds);
+  }
+  
+  static async verify(password, hash) {
+    return await bcrypt.compare(password, hash);
+  }
+  
+  static validateStrength(password) {
+    const minLength = 8;
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumbers = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+    
+    return {
+      isValid: password.length >= minLength && hasUpperCase && 
+               hasLowerCase && hasNumbers && hasSpecialChar,
+      score: [password.length >= minLength, hasUpperCase, 
+              hasLowerCase, hasNumbers, hasSpecialChar]
+              .filter(Boolean).length
+    };
+  }
+}
+
+// API key management
+class ApiKeyService {
+  static generate() {
+    return crypto.randomBytes(32).toString('hex');
+  }
+  
+  static hash(key) {
+    return crypto.createHash('sha256').update(key).digest('hex');
+  }
+  
+  static async validate(req, res, next) {
+    const apiKey = req.headers['x-api-key'];
+    
+    if (!apiKey) {
+      return res.status(401).json({ error: 'API key required' });
+    }
+    
+    const hashedKey = ApiKeyService.hash(apiKey);
+    const isValid = await ApiKeyStore.isValid(hashedKey);
+    
+    if (!isValid) {
+      return res.status(401).json({ error: 'Invalid API key' });
+    }
+    
+    next();
+  }
+}`,
+    language: "javascript",
+    label: "security/SecurityService.js"
+  }
+]} />
+
+## Architecture Decision Framework
+
+When designing your system architecture, consider these key factors:
+
+**Performance Requirements**
+- Expected load and traffic patterns
+- Latency requirements
+- Throughput expectations
+
+**Scalability Needs**
+- Horizontal vs vertical scaling
+- Auto-scaling requirements
+- Geographic distribution
+
+**Consistency Requirements**
+- Strong vs eventual consistency
+- ACID vs BASE properties
+- Data synchronization needs
+
+**Operational Complexity**
+- Team size and expertise
+- Deployment complexity
+- Monitoring and debugging
+
+**Cost Constraints**
+- Infrastructure costs
+- Development and maintenance costs
+- Time to market
+
+## Conclusion
+
+Building scalable system architecture is about making informed trade-offs based on your specific requirements and constraints. Start simple with a monolithic approach, and evolve your architecture as your understanding of the domain and requirements become clearer.
+
+Remember that premature optimization is often counterproductive. Focus on solving real problems rather than theoretical ones, and always measure the impact of your architectural decisions.
+
+The patterns and principles outlined in this guide provide a solid foundation, but the key to success lies in adapting them to your unique context and continuously learning from production experience.

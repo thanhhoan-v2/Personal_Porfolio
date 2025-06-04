@@ -29,7 +29,8 @@ export function Projects({ range }: ProjectsProps) {
           description={post.metadata.summary}
           content={post.content}
           avatars={post.metadata.team?.map((member) => ({ src: member.avatar })) || []}
-          link={post.metadata.link || ""}
+          deployment_url={post.metadata.deployment_url || ""}
+          github_url={post.metadata.github_url || ""}
         />
       ))}
     </Column>

@@ -1,16 +1,17 @@
 import { Logo } from "@/once-ui/components";
 
 const person = {
-  firstName: "Selene",
-  lastName: "Yu",
+  firstName: "Phan Đỉnh",
+  lastName: "Thanh Hoàn",
   get name() {
     return `${this.firstName} ${this.lastName}`;
   },
-  role: "Design Engineer",
+  role: "Software Engineer",
   avatar: "/images/avatar.jpg",
-  email: "example@gmail.com",
-  location: "Asia/Jakarta", // Expecting the IANA time zone identifier, e.g., 'Europe/Vienna'
-  languages: ["English", "Bahasa"], // optional: Leave the array empty if you don't want to display languages
+  email: "thanhhoanphandinh@gmail.com",
+  location: "Ho Chi Minh City, Vietnam",
+  timezone: "Asia/Ho_Chi_Minh",
+  languages: ["English", "Vietnamese"],
 };
 
 const newsletter = {
@@ -18,7 +19,7 @@ const newsletter = {
   title: <>Subscribe to {person.firstName}'s Newsletter</>,
   description: (
     <>
-      I occasionally write about design, technology, and share thoughts on the intersection of
+      I occasionally write about software engineering, technology, and share thoughts on the intersection of
       creativity and engineering.
     </>
   ),
@@ -30,18 +31,18 @@ const social = [
   {
     name: "GitHub",
     icon: "github",
-    link: "https://github.com/once-ui-system/nextjs-starter",
+    link: "https://github.com/thanhhoan-v2",
   },
   {
     name: "LinkedIn",
     icon: "linkedin",
-    link: "https://www.linkedin.com/company/once-ui/",
+    link: "https://www.linkedin.com/in/phan-dinh-thanh-hoan/",
   },
-  {
-    name: "X",
-    icon: "x",
-    link: "",
-  },
+  // {
+  //   name: "X",
+  //   icon: "x",
+  //   link: "",
+  // },
   {
     name: "Email",
     icon: "email",
@@ -55,16 +56,15 @@ const home = {
   label: "Home",
   title: `${person.name}'s Portfolio`,
   description: `Portfolio website showcasing my work as a ${person.role}`,
-  headline: <>Building bridges between design and code</>,
+  headline: <>Phan Đỉnh Thanh Hoàn</>,
   featured: {
     display: true,
-    title: <>Recent project: <strong className="ml-4">Once UI</strong></>,
-    href: "/work/building-once-ui-a-customizable-design-system",
+    title: <>I'm <strong className="ml-4">available</strong>&nbsp;for full-time works & internships.</>,
+    href: "https://piz-one.vercel.app/",
   },
   subline: (
     <>
-      I'm Selene, a design engineer at <Logo icon={false} style={{ display: "inline-flex", top: "0.25em", marginLeft: "-0.25em" }}/>, where I craft intuitive
-      <br /> user experiences. After hours, I build my own projects.
+      I'm Hoàn, a Computer Science graduate who thrives in fast-paced, collaborative environments and is passionate about learning new technologies while building scalable web applications.
     </>
   ),
 };
@@ -72,7 +72,7 @@ const home = {
 const about = {
   path: "/about",
   label: "About",
-  title: `About – ${person.name}`,
+  title: `See more about me`,
   description: `Meet ${person.name}, ${person.role} from ${person.location}`,
   tableOfContent: {
     display: true,
@@ -90,9 +90,8 @@ const about = {
     title: "Introduction",
     description: (
       <>
-        Selene is a Jakarta-based design engineer with a passion for transforming complex challenges
-        into simple, elegant design solutions. Her work spans digital interfaces, interactive
-        experiences, and the convergence of design and technology.
+        Hoàn is a software engineer with a passion for transforming complex technical challenges into scalable, user-focused web solutions.
+        His work spans full-stack development, interactive user interfaces, and the convergence of modern web technologies and performance optimization.
       </>
     ),
   },
@@ -101,44 +100,26 @@ const about = {
     title: "Work Experience",
     experiences: [
       {
-        company: "FLY",
-        timeframe: "2022 - Present",
-        role: "Senior Design Engineer",
+        company: "ILA Viet Nam",
+        timeframe: "Jun 2022 - Sep 2022",
+        role: "Software Developer Intern",
         achievements: [
           <>
-            Redesigned the UI/UX for the FLY platform, resulting in a 20% increase in user
-            engagement and 30% faster load times.
+            Analyzed user stories and engineered UI components to address tigh deadlines, delivering on-time with high quality.
           </>,
           <>
-            Spearheaded the integration of AI tools into design workflows, enabling designers to
-            iterate 50% faster.
+            Collaborated with cross-functional teams to implement new features and improve existing ones, ensuring a seamless user experience.
           </>,
         ],
         images: [
           // optional: leave the array empty if you don't want to display images
-          {
-            src: "/images/projects/project-01/cover-01.jpg",
-            alt: "Once UI Project",
-            width: 16,
-            height: 9,
-          },
+          // {
+          //   src: "/images/projects/project-01/cover-01.jpg",
+          //   alt: "Once UI Project",
+          //   width: 16,
+          //   height: 9,
+          // },
         ],
-      },
-      {
-        company: "Creativ3",
-        timeframe: "2018 - 2022",
-        role: "Lead Designer",
-        achievements: [
-          <>
-            Developed a design system that unified the brand across multiple platforms, improving
-            design consistency by 40%.
-          </>,
-          <>
-            Led a cross-functional team to launch a new product line, contributing to a 15% increase
-            in overall company revenue.
-          </>,
-        ],
-        images: [],
       },
     ],
   },
@@ -147,12 +128,20 @@ const about = {
     title: "Studies",
     institutions: [
       {
-        name: "University of Jakarta",
-        description: <>Studied software engineering.</>,
+        name: "University of the West of England, Bristol, UK",
+        description: <>Bachelor of Computer Science & Engineering</>,
       },
       {
-        name: "Build the Future",
-        description: <>Studied online marketing and personal branding.</>,
+        name: "Udemy: React - The Complete Guide 2025 (incl. Next.js, Redux)",
+        description: <><a href="https://www.udemy.com/certificate/UC-4ca987c1-183e-43f2-91d2-a4c6cdaa6e75/" target="_blank" rel="noopener noreferrer">Credential URL</a></>,
+      },
+      {
+        name: "LinkedIn: Problem-Solving Techniques",
+        description: <><a href="https://www.linkedin.com/in/phan-dinh-thanh-hoan/details/certifications/1740751226077/single-media-viewer?type=DOCUMENT&profileId=ACoAADSn0FEBLTGFHIOrSg4nhcZ1UMapAhklBH0&lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base_certifications_details%3BBY2%2FeLdmRbq2KRd9%2FbbboA%3D%3D" target="_blank" rel="noopener noreferrer">Credential URL</a></>,
+      },
+      {
+        name: "Coursera: AWS S3 Basics",
+        description: <><a href="https://www.coursera.org/account/accomplishments/records/69L5NEDQCYXN" target="_blank" rel="noopener noreferrer">Credential URL</a></>,
       },
     ],
   },
@@ -161,34 +150,69 @@ const about = {
     title: "Technical skills",
     skills: [
       {
-        title: "Figma",
-        description: <>Able to prototype in Figma with Once UI with unnatural speed.</>,
+        title: "",
+        description: <></>,
         // optional: leave the array empty if you don't want to display images
         images: [
           {
-            src: "/images/projects/project-01/cover-02.jpg",
-            alt: "Project image",
-            width: 16,
-            height: 9,
+            src: "/images/skills/reactjs.png",
+            alt: "Technical skill: React.js",
+            width: 5,
+            height: 5,
           },
           {
-            src: "/images/projects/project-01/cover-03.jpg",
-            alt: "Project image",
-            width: 16,
-            height: 9,
+            src: "/images/skills/nextjs.png",
+            alt: "Technical skill: Next.js",
+            width: 5,
+            height: 5,
           },
-        ],
-      },
-      {
-        title: "Next.js",
-        description: <>Building next gen apps with Next.js + Once UI + Supabase.</>,
-        // optional: leave the array empty if you don't want to display images
-        images: [
           {
-            src: "/images/projects/project-01/cover-04.jpg",
-            alt: "Project image",
-            width: 16,
-            height: 9,
+            src: "/images/skills/tailwindcss.png",
+            alt: "Technical skill: Tailwind CSS",
+            width: 5,
+            height: 5,
+          },
+          {
+            src: "/images/skills/typescript.png",
+            alt: "Technical skill: TypeScript",
+            width: 5,
+            height: 5,
+          },
+          {
+            src: "/images/skills/supabase.png",
+            alt: "Technical skill: Supabase",
+            width: 5,
+            height: 5,
+          },
+          {
+            src: "/images/skills/redux.png",
+            alt: "Technical skill: Redux",
+            width: 5,
+            height: 5,
+          },
+          {
+            src: "/images/skills/postgresql.png",
+            alt: "Technical skill: PostgreSQL",
+            width: 5,
+            height: 5,
+          },
+          {
+            src: "/images/skills/mongodb.png",
+            alt: "Technical skill: MongoDB",
+            width: 5,
+            height: 5,
+          },
+          {
+            src: "/images/skills/nodejs.png",
+            alt: "Technical skill: Node.js",
+            width: 5,
+            height: 5,
+          },
+          {
+            src: "/images/skills/expressjs.png",
+            alt: "Technical skill: Express.js",
+            width: 5,
+            height: 5,
           },
         ],
       },
@@ -199,7 +223,7 @@ const about = {
 const blog = {
   path: "/blog",
   label: "Blog",
-  title: "Writing about design and tech...",
+  title: "Writing about software engineering...",
   description: `Read what ${person.name} has been up to recently`,
   // Create new blog posts by adding a new .mdx file to app/blog/posts
   // All posts will be listed on the /blog route
@@ -207,7 +231,7 @@ const blog = {
 
 const work = {
   path: "/work",
-  label: "Work",
+  label: "Projects",
   title: `Projects – ${person.name}`,
   description: `Design and dev projects by ${person.name}`,
   // Create new project pages by adding a new .mdx file to app/blog/posts

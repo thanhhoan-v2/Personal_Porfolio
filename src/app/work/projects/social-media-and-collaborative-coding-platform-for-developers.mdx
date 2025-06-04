@@ -1,0 +1,73 @@
+---
+title: "Social Media & Real-time Collaborative Coding Platform for Developers"
+publishedAt: "2025-03-05"
+summary: "Piz is a social media platform designed exclusively for developers to share ideas, showcase projects, and collaborate on coding challenges. Users can post updates, engage in discussions, follow fellow developers, and receive feedback on their work."
+images:
+  - "/images/projects/piz/home-page.png"
+  - "/images/projects/piz/collab-room.png"
+  - "/images/projects/piz/post-code.png"
+  - "/images/projects/piz/team-page.png"
+  - "/images/projects/piz/notification-page.png"
+  - "/images/projects/piz/profile-page.png"
+team:
+  - name: "Phan Dinh Thanh Hoan"
+    role: "Software Engineer"
+    avatar: "/images/avatar.jpg"
+    # linkedIn: "https://www.linkedin.com/in/phan-dinh-thanh-hoan-2000/"
+  # - name: "Jane Smith"
+  #   role: "Product Manager"
+  #   avatar: "/images/projects/project-01/avatar-01.jpg"
+  #   linkedIn: "https://www.linkedin.com/company/once-ui/"
+deployment_url: "https://piz-one.vercel.app/"
+github_url: "https://github.com/thanhhoan-v2/piz"
+---
+
+## Overview
+
+Piz is a cutting-edge social media platform designed exclusively for developers to share ideas, collaborate on code, and build meaningful connections within the programming community. The platform combines traditional social networking features with advanced collaborative coding tools, creating a unique space where developers can showcase projects, engage in real-time discussions, and work together on coding challenges. With features like live collaborative editing, team management, rich content creation, and intelligent discovery systems, Piz empowers developers to learn, share, and grow together in an interactive and supportive environment. 🚀
+
+## Key Features
+
+- **Real-time Collaborative Coding**: Built an advanced collaborative editor using Monaco Editor with real-time synchronization, allowing multiple developers to code together simultaneously with live cursor tracking and instant code updates across all participants.
+
+- **Team Collaboration System**: Implemented a comprehensive team management system with public/private teams, role-based permissions (admin/member), join request workflows, and team-specific content sharing to foster organized collaboration.
+
+- **Rich Social Media Experience**: Developed a full-featured social platform with user profiles, follow systems, dynamic feeds, multimedia posts (text, images, videos, code snippets), nested commenting, reactions, and real-time Facebook-style notifications.
+
+- **Advanced Code Sharing**: Created sophisticated code snippet sharing with syntax highlighting for multiple languages, direct collaboration room creation from code posts, and seamless integration between social posts and collaborative editing sessions.
+
+- **Intelligent Discovery & Search**: Built comprehensive search functionality for users, teams, posts, and code snippets, complemented by public team discovery, follow suggestions, and trending content algorithms.
+
+- **Real-time Communication**: Integrated chat systems within collaborative rooms with user mentions, live presence indicators, and synchronized messaging across all collaboration participants.
+
+## Technologies Used
+
+- **Frontend Framework**: Next.js 15 with TypeScript for modern, server-rendered React applications with excellent performance and SEO
+- **UI & Design System**: 
+  - Radix UI components for accessible, customizable primitives
+  - Tailwind CSS for utility-first styling and responsive design
+  - Framer Motion for smooth animations and micro-interactions
+  - Lucide React for consistent iconography
+- **Collaborative Features**:
+  - Monaco Editor for professional code editing experience
+  - Supabase Realtime for live collaboration and presence tracking
+  - WebSocket-based real-time synchronization
+- **Database & Backend**:
+  - PostgreSQL with Prisma ORM for type-safe database operations
+  - Supabase for real-time features and file storage
+  - Next.js API Routes for serverless backend functionality
+- **Authentication & Teams**: Stack Auth for comprehensive user management and team collaboration features
+- **State Management**: TanStack Query (React Query) for efficient server state management and caching
+- **Development Tools**: TypeScript, ESLint, Prisma migrations, and comprehensive database schema management
+
+## Challenges and Learnings
+
+One of the primary challenges was implementing real-time collaborative editing that maintains data consistency across multiple users while handling network latency and conflicts. The solution involved creating a sophisticated synchronization system using Supabase's real-time capabilities, implementing proper debouncing for database updates, and managing local vs. remote state changes effectively.
+
+Another significant challenge was designing a scalable team management system that balances security with usability. This required implementing proper role-based permissions, creating an intuitive join request workflow, and ensuring that team privacy settings work seamlessly across all platform features.
+
+The integration of social media features with collaborative coding tools presented unique UX challenges, requiring careful design decisions to make the transition between social interaction and code collaboration feel natural and productive.
+
+## Outcome
+
+Piz has successfully created a unique ecosystem where developers can seamlessly transition from social interaction to productive collaboration. The platform serves as both a professional networking tool and a practical development environment, enabling developers to discover projects, connect with like-minded peers, and work together on code in real-time. The comprehensive feature set has resulted in improved developer productivity, stronger community connections, and a new paradigm for how technical professionals can collaborate and share knowledge in the digital age.

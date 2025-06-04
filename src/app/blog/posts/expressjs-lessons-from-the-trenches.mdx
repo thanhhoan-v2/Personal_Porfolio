@@ -1,0 +1,1003 @@
+---
+title: "Express.js Patterns That Actually Matter: What I Wish I Knew Earlier"
+summary: "Express.js looked deceptively simple when I started—just a few lines and you have a server! But after diving deep into building APIs and learning from mistakes, I've discovered that great Express apps are about the patterns you don't see in tutorials."
+image: "/images/blog/expressjs.png"
+publishedAt: "2025-03-20"
+tag: "Express.js"
+---
+
+Express.js looked deceptively simple when I started—just a few lines and you have a server! But after diving into API development and learning from various challenges, I've discovered that great Express apps are about the patterns you don't see in tutorials. Here are the key insights that have transformed how I approach Node.js applications.
+
+## 1. Middleware: The Heart of Everything
+
+When I first started with Express, I treated middleware like an afterthought. "Just put some `app.use()` calls at the top and move on." That was a mistake. Middleware is where Express truly shines, and understanding the execution flow changed everything for me.
+
+### The Middleware Pattern That Changed My Life
+
+<CodeBlock
+    marginBottom="16"
+    codeInstances={[
+  {
+    code:
+`// Before: Messy, repetitive route handlers
+app.get('/users/:id', async (req, res) => {
+  try {
+    // Validation
+    if (!req.params.id || !mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ error: 'Invalid user ID' });
+    }
+    
+    // Auth check
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ error: 'No token provided' });
+    }
+    
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!decoded) {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+    
+    // Business logic
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    res.json(user);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});`,
+    language: "javascript",
+    label: "routes/messy-example.js"
+  }
+]} />
+
+This was my typical route handler when I started. Every route was a copy-paste fest of validation, auth, error handling, and business logic all mashed together.
+
+### After: Clean Middleware Composition
+
+<CodeBlock
+    marginBottom="16"
+    codeInstances={[
+  {
+    code:
+`// middleware/auth.js
+const jwt = require('jsonwebtoken');
+
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({ error: 'Access token required' });
+  }
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(403).json({ error: 'Invalid or expired token' });
+    }
+    req.user = decoded;
+    next();
+  });
+};
+
+// middleware/validation.js
+const { param, validationResult } = require('express-validator');
+
+const validateObjectId = (paramName) => [
+  param(paramName).isMongoId().withMessage(\`Invalid \${paramName}\`),
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        error: 'Validation failed',
+        details: errors.array()
+      });
+    }
+    next();
+  }
+];
+
+// middleware/asyncHandler.js
+const asyncHandler = (fn) => (req, res, next) => {
+  Promise.resolve(fn(req, res, next)).catch(next);
+};
+
+// Now my routes are clean and focused
+app.get('/users/:id', 
+  validateObjectId('id'),
+  authenticateToken,
+  asyncHandler(async (req, res) => {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    res.json(user);
+  })
+);`,
+    language: "javascript",
+    label: "routes/clean-example.js"
+  }
+]} />
+
+This pattern transformed my codebase. Each middleware has a single responsibility, routes are readable, and I can compose different combinations effortlessly.
+
+## 2. Error Handling: The Game Changer
+
+Learning proper Express error handling was crucial for building reliable applications. Here's the error handling strategy that actually works:
+
+### Centralized Error Handling
+
+<CodeBlock
+    marginBottom="16"
+    codeInstances={[
+  {
+    code:
+`// middleware/errorHandler.js
+class AppError extends Error {
+  constructor(message, statusCode, isOperational = true) {
+    super(message);
+    this.statusCode = statusCode;
+    this.isOperational = isOperational;
+    this.status = \`\${statusCode}\`.startsWith('4') ? 'fail' : 'error';
+    
+    Error.captureStackTrace(this, this.constructor);
+  }
+}
+
+const handleCastErrorDB = (err) => {
+  const message = \`Invalid \${err.path}: \${err.value}\`;
+  return new AppError(message, 400);
+};
+
+const handleDuplicateFieldsDB = (err) => {
+  const value = err.errmsg.match(/(["'])(\\\\?.)*?\\1/)[0];
+  const message = \`Duplicate field value: \${value}. Please use another value!\`;
+  return new AppError(message, 400);
+};
+
+const handleValidationErrorDB = (err) => {
+  const errors = Object.values(err.errors).map(el => el.message);
+  const message = \`Invalid input data. \${errors.join('. ')}\`;
+  return new AppError(message, 400);
+};
+
+const handleJWTError = () =>
+  new AppError('Invalid token. Please log in again!', 401);
+
+const handleJWTExpiredError = () =>
+  new AppError('Your token has expired! Please log in again.', 401);
+
+const sendErrorDev = (err, res) => {
+  res.status(err.statusCode).json({
+    status: err.status,
+    error: err,
+    message: err.message,
+    stack: err.stack
+  });
+};
+
+const sendErrorProd = (err, res) => {
+  // Operational, trusted error: send message to client
+  if (err.isOperational) {
+    res.status(err.statusCode).json({
+      status: err.status,
+      message: err.message
+    });
+  } else {
+    // Programming or other unknown error: don't leak error details
+    console.error('ERROR 💥', err);
+    
+    res.status(500).json({
+      status: 'error',
+      message: 'Something went wrong!'
+    });
+  }
+};
+
+const globalErrorHandler = (err, req, res, next) => {
+  err.statusCode = err.statusCode || 500;
+  err.status = err.status || 'error';
+
+  if (process.env.NODE_ENV === 'development') {
+    sendErrorDev(err, res);
+  } else {
+    let error = { ...err };
+    error.message = err.message;
+
+    if (error.name === 'CastError') error = handleCastErrorDB(error);
+    if (error.code === 11000) error = handleDuplicateFieldsDB(error);
+    if (error.name === 'ValidationError') error = handleValidationErrorDB(error);
+    if (error.name === 'JsonWebTokenError') error = handleJWTError();
+    if (error.name === 'TokenExpiredError') error = handleJWTExpiredError();
+
+    sendErrorProd(error, res);
+  }
+};
+
+module.exports = { AppError, globalErrorHandler };`,
+    language: "javascript",
+    label: "middleware/errorHandler.js"
+  }
+]} />
+
+### Graceful Shutdown and Uncaught Exceptions
+
+<CodeBlock
+    marginBottom="16"
+    codeInstances={[
+  {
+    code:
+`// server.js
+const { globalErrorHandler } = require('./middleware/errorHandler');
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (err) => {
+  console.log('UNCAUGHT EXCEPTION! 💥 Shutting down...');
+  console.log(err.name, err.message);
+  process.exit(1);
+});
+
+const app = express();
+
+// All your middleware and routes here...
+
+// Global error handling middleware (MUST be last!)
+app.use(globalErrorHandler);
+
+const port = process.env.PORT || 3000;
+const server = app.listen(port, () => {
+  console.log(\`App running on port \${port}...\`);
+});
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (err) => {
+  console.log('UNHANDLED REJECTION! 💥 Shutting down...');
+  console.log(err.name, err.message);
+  server.close(() => {
+    process.exit(1);
+  });
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('👋 SIGTERM RECEIVED. Shutting down gracefully');
+  server.close(() => {
+    console.log('💥 Process terminated!');
+  });
+});`,
+    language: "javascript",
+    label: "server.js"
+  }
+]} />
+
+This setup provides robust error handling and helps prevent many common issues.
+
+## 3. Request Validation: Trust Nothing
+
+One of the most important lessons I've learned is that user input is always suspect. Here's a comprehensive validation strategy:
+
+<CodeBlock
+    marginBottom="16"
+    codeInstances={[
+  {
+    code:
+`// validation/userValidation.js
+const { body, param, query } = require('express-validator');
+const User = require('../models/User');
+
+const createUserValidation = [
+  body('email')
+    .isEmail()
+    .withMessage('Please provide a valid email')
+    .normalizeEmail()
+    .custom(async (email) => {
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        throw new Error('Email already in use');
+      }
+      return true;
+    }),
+  
+  body('password')
+    .isLength({ min: 8 })
+    .withMessage('Password must be at least 8 characters long')
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]/)
+    .withMessage('Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character'),
+  
+  body('name')
+    .trim()
+    .isLength({ min: 2, max: 50 })
+    .withMessage('Name must be between 2 and 50 characters')
+    .matches(/^[a-zA-Z\\s]+$/)
+    .withMessage('Name can only contain letters and spaces'),
+  
+  body('age')
+    .optional()
+    .isInt({ min: 13, max: 120 })
+    .withMessage('Age must be between 13 and 120'),
+];
+
+const getUsersValidation = [
+  query('page')
+    .optional()
+    .isInt({ min: 1 })
+    .withMessage('Page must be a positive integer'),
+  
+  query('limit')
+    .optional()
+    .isInt({ min: 1, max: 100 })
+    .withMessage('Limit must be between 1 and 100'),
+  
+  query('sort')
+    .optional()
+    .isIn(['name', 'email', 'createdAt', '-name', '-email', '-createdAt'])
+    .withMessage('Invalid sort field'),
+  
+  query('search')
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage('Search term cannot exceed 100 characters')
+    .escape() // Prevent XSS attacks
+];
+
+const updateUserValidation = [
+  param('id').isMongoId().withMessage('Invalid user ID'),
+  
+  body('email')
+    .optional()
+    .isEmail()
+    .withMessage('Please provide a valid email')
+    .normalizeEmail(),
+  
+  body('name')
+    .optional()
+    .trim()
+    .isLength({ min: 2, max: 50 })
+    .withMessage('Name must be between 2 and 50 characters'),
+  
+  // Prevent updating sensitive fields
+  body(['password', 'role', 'verified'])
+    .not()
+    .exists()
+    .withMessage('Cannot update protected fields through this endpoint'),
+];
+
+module.exports = {
+  createUserValidation,
+  getUsersValidation,
+  updateUserValidation
+};`,
+    language: "javascript",
+    label: "validation/userValidation.js"
+  }
+]} />
+
+### Input Sanitization and Rate Limiting
+
+<CodeBlock
+    marginBottom="16"
+    codeInstances={[
+  {
+    code:
+`// middleware/security.js
+const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
+const mongoSanitize = require('express-mongo-sanitize');
+const xss = require('xss-clean');
+const hpp = require('hpp');
+
+// Rate limiting
+const createAccountLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 5, // Limit each IP to 5 account creation requests per windowMs
+  message: {
+    error: 'Too many accounts created from this IP, please try again after an hour.'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: {
+    error: 'Too many requests from this IP, please try again later.'
+  }
+});
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // Limit each IP to 5 login attempts per windowMs
+  message: {
+    error: 'Too many login attempts, please try again later.'
+  },
+  skipSuccessfulRequests: true, // Don't count successful requests
+});
+
+const setupSecurity = (app) => {
+  // Set security HTTP headers
+  app.use(helmet());
+
+  // Rate limiting
+  app.use('/api', generalLimiter);
+  app.use('/api/auth/login', authLimiter);
+  app.use('/api/auth/register', createAccountLimiter);
+
+  // Body parser (built into Express 4.16+)
+  app.use(express.json({ limit: '10kb' }));
+  app.use(express.urlencoded({ extended: true, limit: '10kb' }));
+
+  // Data sanitization against NoSQL query injection
+  app.use(mongoSanitize());
+
+  // Data sanitization against XSS attacks
+  app.use(xss());
+
+  // Prevent parameter pollution
+  app.use(hpp({
+    whitelist: ['sort', 'fields', 'page', 'limit'] // Allow these params to appear multiple times
+  }));
+};
+
+module.exports = { setupSecurity };`,
+    language: "javascript",
+    label: "middleware/security.js"
+  }
+]} />
+
+## 4. Database Integration: Building for Growth
+
+Understanding how to properly integrate databases with Express is crucial for scalable applications. Here's what I've learned about effective database integration:
+
+### Connection Management and Pooling
+
+<CodeBlock
+    marginBottom="16"
+    codeInstances={[
+  {
+    code:
+`// config/database.js
+const mongoose = require('mongoose');
+
+const connectDB = async () => {
+  try {
+    const options = {
+      maxPoolSize: 10, // Maintain up to 10 socket connections
+      serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds
+      socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
+      bufferMaxEntries: 0, // Disable mongoose buffering
+      bufferCommands: false, // Disable mongoose buffering
+    };
+
+    const conn = await mongoose.connect(process.env.MONGO_URI, options);
+
+    console.log(\`MongoDB Connected: \${conn.connection.host}\`);
+
+    // Connection event handlers
+    mongoose.connection.on('connected', () => {
+      console.log('Mongoose connected to MongoDB');
+    });
+
+    mongoose.connection.on('error', (err) => {
+      console.error('Mongoose connection error:', err);
+    });
+
+    mongoose.connection.on('disconnected', () => {
+      console.log('Mongoose disconnected');
+    });
+
+    // Graceful shutdown
+    process.on('SIGINT', async () => {
+      await mongoose.connection.close();
+      console.log('Mongoose connection closed through app termination');
+      process.exit(0);
+    });
+
+  } catch (error) {
+    console.error('Database connection failed:', error);
+    process.exit(1);
+  }
+};
+
+module.exports = connectDB;`,
+    language: "javascript",
+    label: "config/database.js"
+  }
+]} />
+
+### Repository Pattern for Cleaner Data Access
+
+<CodeBlock
+    marginBottom="16"
+    codeInstances={[
+  {
+    code:
+`// repositories/BaseRepository.js
+class BaseRepository {
+  constructor(model) {
+    this.model = model;
+  }
+
+  async create(data) {
+    const doc = await this.model.create(data);
+    return doc;
+  }
+
+  async findById(id, populateOptions = '') {
+    const doc = await this.model.findById(id).populate(populateOptions);
+    return doc;
+  }
+
+  async findOne(filter, populateOptions = '') {
+    const doc = await this.model.findOne(filter).populate(populateOptions);
+    return doc;
+  }
+
+  async findWithPagination(filter = {}, options = {}) {
+    const {
+      page = 1,
+      limit = 10,
+      sort = '-createdAt',
+      populate = '',
+      select = ''
+    } = options;
+
+    const skip = (page - 1) * limit;
+
+    const [docs, total] = await Promise.all([
+      this.model
+        .find(filter)
+        .populate(populate)
+        .select(select)
+        .sort(sort)
+        .skip(skip)
+        .limit(parseInt(limit)),
+      this.model.countDocuments(filter)
+    ]);
+
+    return {
+      docs,
+      total,
+      page: parseInt(page),
+      limit: parseInt(limit),
+      totalPages: Math.ceil(total / limit),
+      hasNext: page < Math.ceil(total / limit),
+      hasPrev: page > 1
+    };
+  }
+
+  async update(id, data) {
+    const doc = await this.model.findByIdAndUpdate(
+      id,
+      data,
+      { new: true, runValidators: true }
+    );
+    return doc;
+  }
+
+  async delete(id) {
+    const doc = await this.model.findByIdAndDelete(id);
+    return doc;
+  }
+
+  async exists(filter) {
+    const doc = await this.model.findOne(filter).select('_id');
+    return !!doc;
+  }
+}
+
+// repositories/UserRepository.js
+const BaseRepository = require('./BaseRepository');
+const User = require('../models/User');
+
+class UserRepository extends BaseRepository {
+  constructor() {
+    super(User);
+  }
+
+  async findByEmail(email) {
+    return await this.findOne({ email: email.toLowerCase() });
+  }
+
+  async findActiveUsers(options = {}) {
+    return await this.findWithPagination(
+      { isActive: true },
+      options
+    );
+  }
+
+  async updateLastLogin(userId) {
+    return await this.update(userId, { lastLoginAt: new Date() });
+  }
+
+  async getUserStats() {
+    const stats = await this.model.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalUsers: { $sum: 1 },
+          activeUsers: {
+            $sum: { $cond: [{ $eq: ['$isActive', true] }, 1, 0] }
+          },
+          avgAge: { $avg: '$age' }
+        }
+      }
+    ]);
+
+    return stats[0] || { totalUsers: 0, activeUsers: 0, avgAge: 0 };
+  }
+}
+
+module.exports = new UserRepository();`,
+    language: "javascript",
+    label: "repositories/UserRepository.js"
+  }
+]} />
+
+## 5. Performance: Optimization That Matters
+
+Understanding performance optimization is essential for building responsive APIs. Here's what actually makes a difference for performance:
+
+### Response Caching and Compression
+
+<CodeBlock
+    marginBottom="16"
+    codeInstances={[
+  {
+    code:
+`// middleware/performance.js
+const compression = require('compression');
+const redis = require('redis');
+
+// Redis setup
+const redisClient = redis.createClient({
+  host: process.env.REDIS_HOST || 'localhost',
+  port: process.env.REDIS_PORT || 6379,
+  retry_strategy: (options) => {
+    if (options.error && options.error.code === 'ECONNREFUSED') {
+      console.error('Redis connection refused');
+      return new Error('Redis connection refused');
+    }
+    if (options.total_retry_time > 1000 * 60 * 60) {
+      return new Error('Retry time exhausted');
+    }
+    if (options.attempt > 10) {
+      return undefined;
+    }
+    return Math.min(options.attempt * 100, 3000);
+  }
+});
+
+// Cache middleware
+const cache = (duration = 300) => {
+  return async (req, res, next) => {
+    if (req.method !== 'GET') {
+      return next();
+    }
+
+    const key = \`cache:\${req.originalUrl}\`;
+    
+    try {
+      const cached = await redisClient.get(key);
+      
+      if (cached) {
+        console.log('Cache hit for:', key);
+        return res.json(JSON.parse(cached));
+      }
+      
+      // Store original json method
+      const originalJson = res.json;
+      
+      // Override json method to cache response
+      res.json = function(data) {
+        // Cache the response
+        redisClient.setex(key, duration, JSON.stringify(data));
+        console.log('Cached response for:', key);
+        
+        // Call original json method
+        originalJson.call(this, data);
+      };
+      
+      next();
+    } catch (error) {
+      console.error('Cache error:', error);
+      next();
+    }
+  };
+};
+
+// Invalidate cache helper
+const invalidateCache = (pattern) => {
+  return new Promise((resolve, reject) => {
+    redisClient.keys(pattern, (err, keys) => {
+      if (err) return reject(err);
+      
+      if (keys.length === 0) return resolve(0);
+      
+      redisClient.del(keys, (err, deletedCount) => {
+        if (err) return reject(err);
+        console.log(\`Invalidated \${deletedCount} cache entries\`);
+        resolve(deletedCount);
+      });
+    });
+  });
+};
+
+// Compression setup
+const setupCompression = (app) => {
+  app.use(compression({
+    filter: (req, res) => {
+      if (req.headers['x-no-compression']) {
+        return false;
+      }
+      return compression.filter(req, res);
+    },
+    level: 6,
+    threshold: 1024,
+  }));
+};
+
+module.exports = { cache, invalidateCache, setupCompression };`,
+    language: "javascript",
+    label: "middleware/performance.js"
+  }
+]} />
+
+### Database Query Optimization
+
+<CodeBlock
+    marginBottom="16"
+    codeInstances={[
+  {
+    code:
+`// utils/queryOptimizer.js
+class QueryBuilder {
+  constructor(query, queryString) {
+    this.query = query;
+    this.queryString = queryString;
+  }
+
+  filter() {
+    const queryObj = { ...this.queryString };
+    const excludedFields = ['page', 'sort', 'limit', 'fields', 'search'];
+    excludedFields.forEach(el => delete queryObj[el]);
+
+    // Advanced filtering
+    let queryStr = JSON.stringify(queryObj);
+    queryStr = queryStr.replace(/\\b(gte|gt|lte|lt)\\b/g, match => \`$\${match}\`);
+
+    this.query = this.query.find(JSON.parse(queryStr));
+
+    return this;
+  }
+
+  search() {
+    if (this.queryString.search) {
+      const searchRegex = new RegExp(this.queryString.search, 'i');
+      this.query = this.query.find({
+        $or: [
+          { name: searchRegex },
+          { email: searchRegex },
+          { description: searchRegex }
+        ]
+      });
+    }
+
+    return this;
+  }
+
+  sort() {
+    if (this.queryString.sort) {
+      const sortBy = this.queryString.sort.split(',').join(' ');
+      this.query = this.query.sort(sortBy);
+    } else {
+      this.query = this.query.sort('-createdAt');
+    }
+
+    return this;
+  }
+
+  limitFields() {
+    if (this.queryString.fields) {
+      const fields = this.queryString.fields.split(',').join(' ');
+      this.query = this.query.select(fields);
+    } else {
+      this.query = this.query.select('-__v');
+    }
+
+    return this;
+  }
+
+  paginate() {
+    const page = this.queryString.page * 1 || 1;
+    const limit = this.queryString.limit * 1 || 10;
+    const skip = (page - 1) * limit;
+
+    this.query = this.query.skip(skip).limit(limit);
+
+    return this;
+  }
+}
+
+// Performance monitoring middleware
+const queryLogger = (req, res, next) => {
+  const start = Date.now();
+  
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    
+    if (duration > 1000) { // Log slow queries
+      console.warn(\`Slow query detected: \${req.method} \${req.path} - \${duration}ms\`);
+    }
+    
+    // Log to monitoring service
+    if (process.env.NODE_ENV === 'production') {
+      // Send metrics to your monitoring service
+      console.log(JSON.stringify({
+        method: req.method,
+        path: req.path,
+        duration,
+        statusCode: res.statusCode,
+        timestamp: new Date().toISOString()
+      }));
+    }
+  });
+  
+  next();
+};
+
+module.exports = { QueryBuilder, queryLogger };`,
+    language: "javascript",
+    label: "utils/queryOptimizer.js"
+  }
+]} />
+
+## 6. Testing: Building Confidence in Your Code
+
+Testing is essential for maintaining reliable APIs. Here's a practical testing approach that catches bugs early:
+
+<CodeBlock
+    marginBottom="16"
+    codeInstances={[
+  {
+    code:
+`// tests/integration/auth.test.js
+const request = require('supertest');
+const app = require('../../app');
+const User = require('../../models/User');
+const { connectDB, closeDB, clearDB } = require('../setup/database');
+
+describe('Authentication Endpoints', () => {
+  beforeAll(async () => {
+    await connectDB();
+  });
+
+  afterAll(async () => {
+    await closeDB();
+  });
+
+  beforeEach(async () => {
+    await clearDB();
+  });
+
+  describe('POST /api/auth/register', () => {
+    const validUser = {
+      name: 'John Doe',
+      email: 'john@example.com',
+      password: 'Password123!'
+    };
+
+    it('should register a new user with valid data', async () => {
+      const response = await request(app)
+        .post('/api/auth/register')
+        .send(validUser)
+        .expect(201);
+
+      expect(response.body).toHaveProperty('token');
+      expect(response.body.user).toHaveProperty('email', validUser.email);
+      expect(response.body.user).not.toHaveProperty('password');
+
+      // Verify user was created in database
+      const userInDB = await User.findOne({ email: validUser.email });
+      expect(userInDB).toBeTruthy();
+      expect(userInDB.name).toBe(validUser.name);
+    });
+
+    it('should reject registration with invalid email', async () => {
+      const response = await request(app)
+        .post('/api/auth/register')
+        .send({ ...validUser, email: 'invalid-email' })
+        .expect(400);
+
+      expect(response.body).toHaveProperty('error');
+      expect(response.body.error).toContain('valid email');
+    });
+
+    it('should reject registration with weak password', async () => {
+      const response = await request(app)
+        .post('/api/auth/register')
+        .send({ ...validUser, password: '123' })
+        .expect(400);
+
+      expect(response.body).toHaveProperty('error');
+    });
+
+    it('should reject duplicate email registration', async () => {
+      // Create first user
+      await request(app)
+        .post('/api/auth/register')
+        .send(validUser)
+        .expect(201);
+
+      // Try to register again with same email
+      const response = await request(app)
+        .post('/api/auth/register')
+        .send(validUser)
+        .expect(400);
+
+      expect(response.body.error).toContain('already in use');
+    });
+  });
+
+  describe('POST /api/auth/login', () => {
+    beforeEach(async () => {
+      // Create a user to login with
+      await request(app)
+        .post('/api/auth/register')
+        .send({
+          name: 'Test User',
+          email: 'test@example.com',
+          password: 'Password123!'
+        });
+    });
+
+    it('should login with valid credentials', async () => {
+      const response = await request(app)
+        .post('/api/auth/login')
+        .send({
+          email: 'test@example.com',
+          password: 'Password123!'
+        })
+        .expect(200);
+
+      expect(response.body).toHaveProperty('token');
+      expect(response.body.user).toHaveProperty('email', 'test@example.com');
+    });
+
+    it('should reject login with invalid credentials', async () => {
+      const response = await request(app)
+        .post('/api/auth/login')
+        .send({
+          email: 'test@example.com',
+          password: 'wrongpassword'
+        })
+        .expect(401);
+
+      expect(response.body).toHaveProperty('error');
+    });
+  });
+});`,
+    language: "javascript",
+    label: "tests/integration/auth.test.js"
+  }
+]} />
+
+## Conclusion: Express.js Patterns That Make a Difference
+
+Through learning and applying these patterns, these are the insights that have proven most valuable:
+
+1. **Middleware composition** is incredibly powerful—use it to build reusable, testable components
+2. **Error handling** is crucial for reliable applications—invest in proper error boundaries and monitoring
+3. **Validation and security** should be your default mindset, not an afterthought
+4. **Database patterns** like repositories help manage complexity as your app grows
+5. **Performance optimizations** should be measured, not guessed
+6. **Testing** gives you confidence in your deployments and catches issues early
+
+Express.js gives you incredible flexibility, but with great power comes great responsibility. The patterns I've shared here are proven best practices that can save you debugging time and help prevent common issues.
+
+Whether you're building your first API or working on more complex applications, remember that good Express.js code isn't just about making things work—it's about making them work reliably, securely, and maintainably. Investing in these patterns early pays dividends as your applications grow. 

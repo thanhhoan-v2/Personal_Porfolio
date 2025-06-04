@@ -18,7 +18,8 @@ interface ProjectCardProps {
   content: string;
   description: string;
   avatars: { src: string }[];
-  link: string;
+  deployment_url: string;
+  github_url: string;
 }
 
 export const ProjectCard: React.FC<ProjectCardProps> = ({
@@ -28,7 +29,8 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
   content,
   description,
   avatars,
-  link,
+  deployment_url,
+  github_url,
 }) => {
   return (
     <Column fillWidth gap="m">
@@ -72,13 +74,22 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
                   <Text variant="body-default-s">Read case study</Text>
                 </SmartLink>
               )}
-              {link && (
+              {deployment_url && (
                 <SmartLink
                   suffixIcon="arrowUpRightFromSquare"
                   style={{ margin: "0", width: "fit-content" }}
-                  href={link}
+                  href={deployment_url}
                 >
-                  <Text variant="body-default-s">View project</Text>
+                  <Text variant="body-default-s">View deployment</Text>
+                </SmartLink>
+              )}
+              {github_url && (
+                <SmartLink
+                  suffixIcon="github"
+                  style={{ margin: "0", width: "fit-content" }}
+                  href={github_url}
+                >
+                  <Text variant="body-default-s">View code</Text>
                 </SmartLink>
               )}
             </Flex>
