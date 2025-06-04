@@ -1,0 +1,109 @@
+---
+title: "Omninum - A Text-Based Calculator App that can calculate anything"
+publishedAt: "2024-02-08"
+summary: "Omni-Calculator is a calculator app that can calculate anything, including complex math equations."
+images:
+  - "/images/projects/omni_cal/ex_1.png"
+  - "/images/projects/omni_cal/ex_2.png"
+team:
+  - name: "Phan Dinh Thanh Hoan"
+    role: "Software Engineer"
+    avatar: "/images/avatar.jpg"
+deployment_url: "https://omninum.vercel.app/"
+github_url: "https://github.com/thanhhoann/omni_cal"
+---
+
+Meet **OMNINUM**, a sleek and innovative text-based calculator that goes far beyond simple arithmetic. This React-powered application redefines what a calculator can be by combining mathematical computations with productivity features in a beautiful, terminal-inspired interface.
+
+## 🚀 What Makes OMNINUM Special?
+
+### Smart Mathematical Processing
+OMNINUM leverages the powerful `mathsteps` library to not just calculate results, but to show you the journey. When solving equations (those containing 'x'), it provides step-by-step breakdowns, making it perfect for students and anyone wanting to understand the mathematical process.
+
+<CodeBlock
+    marginBottom="16"
+    codeInstances={[
+  {
+    code:
+`Input: 2x + 5 = 15
+Output: 
+Step 1: 2x + 5 = 15
+Step 2: 2x = 10  
+Step 3: x = 5`,
+    language: "text",
+    label: "Example"
+  }
+]} />
+
+For regular expressions, it simplifies them intelligently, handling everything from basic arithmetic to complex mathematical operations.
+
+### Beyond Calculations: The "Roombuds" Feature
+What sets OMNINUM apart is its hidden productivity suite called "Roombuds" - a collection of tools designed for shared living and collaboration:
+
+#### 📱 Smart Contacts Manager
+- Store contact information with phone numbers and banking details 
+- One-click copying to clipboard for quick sharing
+- Perfect for roommates who need to split bills or share contact info
+
+#### 📋 Papers & Documents
+- Quick access to important documents and papers
+- Organized storage for shared household information
+
+#### 💰 Savings Tracker
+- Monitor shared expenses and savings goals
+- Ideal for roommate financial planning
+
+### Elegant User Experience
+The application features a minimalist, terminal-inspired design built with:
+- **React 17** for robust component architecture
+- **Tailwind CSS** for beautiful, responsive styling
+- **Heroicons** for clean, modern iconography
+
+The interface centers around a simple input field with a chevron prompt (>) that accepts natural language commands like "help", "roombuds", or mathematical expressions.
+
+## 🎯 Technical Architecture
+
+The codebase demonstrates excellent React patterns:
+- **Component-based architecture** with clear separation of concerns
+- **State management** using React hooks
+- **Conditional rendering** for dynamic feature activation
+- **Responsive design** that works across devices
+
+Key technologies:
+<CodeBlock
+    marginBottom="16"
+    codeInstances={[
+  {
+    code:
+`{
+  "mathsteps": "^0.2.0",    // Advanced math processing
+  "cheerio": "^1.0.0",     // Web scraping capabilities  
+  "axios": "^0.25.0",      // API interactions
+  "numeral": "^2.0.6"      // Number formatting
+}`,
+    language: "json",
+    label: "Dependencies"
+  }
+]} />
+
+## 🌟 What's Next?
+
+The roadmap shows ambitious plans:
+- **Currency conversion** for international calculations
+- **Todo list integration** for enhanced productivity
+- **Landing page** for better user onboarding
+
+## Why OMNINUM Matters
+
+In an era of specialized apps, OMNINUM takes a refreshing approach by combining calculation power with everyday productivity tools. It's particularly valuable for:
+
+- **Students** who need step-by-step math solutions
+- **Anyone who appreciates clean, efficient interfaces** inspired by terminal aesthetics
+
+The project showcases how modern web technologies can create tools that are both powerful and approachable, proving that calculators don't have to be boring single-purpose applications.
+
+OMNINUM represents the future of computational tools - smart, integrated, and designed for real-world use cases beyond just numbers.
+
+---
+
+*Experience OMNINUM's unique blend of mathematical intelligence and practical productivity tools. Type "help" to get started and discover the hidden features that make everyday calculations more meaningful.*
