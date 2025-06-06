@@ -2,7 +2,7 @@ import { MDXRemote, MDXRemoteProps } from "next-mdx-remote/rsc";
 import React, { ReactNode } from "react";
 import dynamic from "next/dynamic";
 
-import { 
+import {
   Heading,
   HeadingLink,
   SmartImage,
@@ -65,8 +65,25 @@ function createImage({ alt, src, ...props }: SmartImageProps & { src: string }) 
   );
 }
 
-function slugify(str: string): string {
-  return str
+function slugify(str: string | ReactNode): string {
+  // Convert ReactNode to string
+  let text: string;
+  if (typeof str === 'string') {
+    text = str;
+  } else if (React.isValidElement(str)) {
+    // Handle React elements by extracting text content
+    text = extractTextFromElement(str);
+  } else if (Array.isArray(str)) {
+    // Handle arrays of React elements/text
+    text = str.map(item =>
+      typeof item === 'string' ? item :
+        React.isValidElement(item) ? extractTextFromElement(item) : ''
+    ).join('');
+  } else {
+    text = String(str);
+  }
+
+  return text
     .toLowerCase()
     .replace(/\s+/g, "-") // Replace spaces with -
     .replace(/&/g, "-and-") // Replace & with 'and'
@@ -74,9 +91,21 @@ function slugify(str: string): string {
     .replace(/\-\-+/g, "-"); // Replace multiple - with single -
 }
 
+function extractTextFromElement(element: React.ReactElement): string {
+  if (typeof element.props.children === 'string') {
+    return element.props.children;
+  } else if (Array.isArray(element.props.children)) {
+    return element.props.children.map((child: any) =>
+      typeof child === 'string' ? child :
+        React.isValidElement(child) ? extractTextFromElement(child) : ''
+    ).join('');
+  }
+  return '';
+}
+
 function createHeading(as: "h1" | "h2" | "h3" | "h4" | "h5" | "h6") {
   const CustomHeading = ({ children, ...props }: TextProps<typeof as>) => {
-    const slug = slugify(children as string);
+    const slug = slugify(children);
     return (
       <HeadingLink
         style={{ marginTop: "var(--static-space-24)", marginBottom: "var(--static-space-12)" }}
@@ -116,11 +145,11 @@ function createCodeBlock(props: any) {
   // For pre tags that contain code blocks
   if (props.children && props.children.props && props.children.props.className) {
     const { className, children } = props.children.props;
-    
+
     // Extract language from className (format: language-xxx)
     const language = className.replace('language-', '');
     const label = language.charAt(0).toUpperCase() + language.slice(1);
-    
+
     return (
       <CodeBlock
         marginTop="8"
@@ -136,7 +165,7 @@ function createCodeBlock(props: any) {
       />
     );
   }
-  
+
   // Fallback for other pre tags or empty code blocks
   return <pre {...props} />;
 }
