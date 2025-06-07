@@ -111,7 +111,7 @@ const about = {
     experiences: [
       {
         company: "ILA Viet Nam",
-        timeframe: "Febuary 2022 - April 2025",
+        timeframe: "June 2022 - September 2022",
         role: "Software Developer Intern",
         achievements: [
           "Analyzed user stories and engineered UI components to address tight deadlines, delivering on-time within 12 weeks.",
@@ -129,9 +129,9 @@ const about = {
         ],
       },
       {
-        company: "Teaching Assistant",
+        company: "Teaching Assistant - Object-oriented Programming Course",
         timeframe: "October 2023 - January 2024",
-        role: "Object-oriented Programming Course at International University - VNU HCMC",
+        role: "International University - VNU HCMC",
         achievements: [
           "Conducted weekly lab sessions for 40+ students, providing guidance on OOP concepts, including inheritance, polymorphism and design patterns while debugging code assignments.",
           "Graded programming assignments and quizzes focused on OOP principles, with detailed feedback on code structure, documentation.",
