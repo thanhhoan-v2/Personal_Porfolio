@@ -22,8 +22,8 @@ const newsletter = {
   title: <>Subscribe to {person.firstName}'s Newsletter</>,
   description: (
     <>
-      I occasionally write about software engineering, technology, and share thoughts on the intersection of
-      creativity and engineering.
+      I occasionally write about software engineering, technology, and share thoughts on the
+      intersection of creativity and engineering.
     </>
   ),
 };
@@ -62,12 +62,17 @@ const home = {
   headline: <>Phan Đỉnh Thanh Hoàn</>,
   featured: {
     display: true,
-    title: <>I'm <strong className="ml-4">available</strong>&nbsp;for full-time works & internships.</>,
+    title: (
+      <>
+        I'm <strong className="ml-4">available</strong>&nbsp;for full-time works & internships.
+      </>
+    ),
     href: "https://piz-one.vercel.app/",
   },
   subline: (
     <>
-      I'm Hoàn, a Computer Science graduate who thrives in fast-paced, collaborative environments and is passionate about learning new technologies while building scalable web applications.
+      I'm Hoàn, a Computer Science graduate who thrives in fast-paced, collaborative environments
+      and is passionate about learning new technologies while building scalable web applications.
     </>
   ),
 };
@@ -93,8 +98,10 @@ const about = {
     title: "Introduction",
     description: (
       <>
-        Hoàn is a software engineer with a passion for transforming complex technical challenges into scalable, user-focused web solutions.
-        His work spans full-stack development, interactive user interfaces, and the convergence of modern web technologies and performance optimization.
+        Hoàn is a software engineer with a passion for transforming complex technical challenges
+        into scalable, user-focused web solutions. His work spans full-stack development,
+        interactive user interfaces, and the convergence of modern web technologies and performance
+        optimization.
       </>
     ),
   },
@@ -104,15 +111,30 @@ const about = {
     experiences: [
       {
         company: "ILA Viet Nam",
-        timeframe: "Jun 2022 - Sep 2022",
+        timeframe: "Febuary 2022 - April 2025",
         role: "Software Developer Intern",
         achievements: [
-          <>
-            Analyzed user stories and engineered UI components to address tigh deadlines, delivering on-time with high quality.
-          </>,
-          <>
-            Collaborated with cross-functional teams to implement new features and improve existing ones, ensuring a seamless user experience.
-          </>,
+          "Analyzed user stories and engineered UI components to address tight deadlines, delivering on-time within 12 weeks.",
+          "Developed components using React.js, HTML/CSS and TypeScript, matches 98% of Figma designs.",
+          "Implemented Code Splitting & Lazy Loading to tackle web application issues, delivering 30% faster load times.",
+        ],
+        images: [
+          // optional: leave the array empty if you don't want to display images
+          // {
+          //   src: "/images/projects/project-01/cover-01.jpg",
+          //   alt: "Once UI Project",
+          //   width: 16,
+          //   height: 9,
+          // },
+        ],
+      },
+      {
+        company: "Teaching Assistant",
+        timeframe: "October 2023 - January 2024",
+        role: "Object-oriented Programming Course at International University - VNU HCMC",
+        achievements: [
+          "Conducted weekly lab sessions for 40+ students, providing guidance on OOP concepts, including inheritance, polymorphism and design patterns while debugging code assignments.",
+          "Graded programming assignments and quizzes focused on OOP principles, with detailed feedback on code structure, documentation.",
         ],
         images: [
           // optional: leave the array empty if you don't want to display images
@@ -136,15 +158,45 @@ const about = {
       },
       {
         name: "Udemy: React - The Complete Guide 2025 (incl. Next.js, Redux)",
-        description: <><a href="https://www.udemy.com/certificate/UC-4ca987c1-183e-43f2-91d2-a4c6cdaa6e75/" target="_blank" rel="noopener noreferrer">Credential URL</a></>,
+        description: (
+          <>
+            <a
+              href="https://www.udemy.com/certificate/UC-4ca987c1-183e-43f2-91d2-a4c6cdaa6e75/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Credential URL
+            </a>
+          </>
+        ),
       },
       {
         name: "LinkedIn: Problem-Solving Techniques",
-        description: <><a href="https://www.linkedin.com/in/phan-dinh-thanh-hoan/details/certifications/1740751226077/single-media-viewer?type=DOCUMENT&profileId=ACoAADSn0FEBLTGFHIOrSg4nhcZ1UMapAhklBH0&lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base_certifications_details%3BBY2%2FeLdmRbq2KRd9%2FbbboA%3D%3D" target="_blank" rel="noopener noreferrer">Credential URL</a></>,
+        description: (
+          <>
+            <a
+              href="https://www.linkedin.com/in/phan-dinh-thanh-hoan/details/certifications/1740751226077/single-media-viewer?type=DOCUMENT&profileId=ACoAADSn0FEBLTGFHIOrSg4nhcZ1UMapAhklBH0&lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base_certifications_details%3BBY2%2FeLdmRbq2KRd9%2FbbboA%3D%3D"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Credential URL
+            </a>
+          </>
+        ),
       },
       {
         name: "Coursera: AWS S3 Basics",
-        description: <><a href="https://www.coursera.org/account/accomplishments/records/69L5NEDQCYXN" target="_blank" rel="noopener noreferrer">Credential URL</a></>,
+        description: (
+          <>
+            <a
+              href="https://www.coursera.org/account/accomplishments/records/69L5NEDQCYXN"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Credential URL
+            </a>
+          </>
+        ),
       },
     ],
   },
