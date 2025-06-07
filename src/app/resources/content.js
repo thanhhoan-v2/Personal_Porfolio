@@ -19,7 +19,7 @@ const person = {
 
 const newsletter = {
   display: true,
-  title: <>Subscribe to {person.firstName}'s Newsletter</>,
+  title: <>Subscribe to {person.firstName}&rsquo;s Newsletter</>,
   description: (
     <>
       I occasionally write about software engineering, technology, and share thoughts on the
@@ -64,14 +64,14 @@ const home = {
     display: true,
     title: (
       <>
-        I'm <strong className="ml-4">available</strong>&nbsp;for full-time works & internships.
+        I&rsquo;m <strong className="ml-4">available</strong>&nbsp;for full-time works & internships.
       </>
     ),
     href: "https://piz-one.vercel.app/",
   },
   subline: (
     <>
-      I'm Hoàn, a Computer Science graduate who thrives in fast-paced, collaborative environments
+      I&rsquo;m Hoàn, a Computer Science graduate who thrives in fast-paced, collaborative environments
       and is passionate about learning new technologies while building scalable web applications.
     </>
   ),
