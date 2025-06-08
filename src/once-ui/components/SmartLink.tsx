@@ -1,10 +1,11 @@
 "use client";
 
-import React, { forwardRef, ReactNode } from "react";
 import classNames from "classnames";
+import type React from "react";
+import { type ReactNode, forwardRef } from "react";
 import { Icon } from ".";
+import type { IconName } from "../icons";
 import { ElementType } from "./ElementType";
-import { IconName } from "../icons";
 
 interface CommonProps {
   prefixIcon?: IconName;
@@ -19,8 +20,7 @@ interface CommonProps {
   className?: string;
 }
 
-export type SmartLinkProps = CommonProps &
-  React.AnchorHTMLAttributes<HTMLAnchorElement>;
+export type SmartLinkProps = CommonProps & React.AnchorHTMLAttributes<HTMLAnchorElement>;
 
 const SmartLink = forwardRef<HTMLAnchorElement, SmartLinkProps>(
   (
@@ -37,7 +37,7 @@ const SmartLink = forwardRef<HTMLAnchorElement, SmartLinkProps>(
       children,
       ...props
     },
-    ref
+    ref,
   ) => {
     const content = (
       <>
@@ -56,7 +56,7 @@ const SmartLink = forwardRef<HTMLAnchorElement, SmartLinkProps>(
           "fill-width": fillWidth,
           "fit-width": !fillWidth,
           "px-2 mx-2": !unstyled,
-        }
+        },
       ),
       style: !unstyled
         ? {
@@ -77,7 +77,7 @@ const SmartLink = forwardRef<HTMLAnchorElement, SmartLinkProps>(
         {content}
       </ElementType>
     );
-  }
+  },
 );
 
 SmartLink.displayName = "SmartLink";

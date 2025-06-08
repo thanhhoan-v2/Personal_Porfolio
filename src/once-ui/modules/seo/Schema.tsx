@@ -1,6 +1,6 @@
-import React from "react";
-import Script from "next/script";
 import { social } from "@/app/resources/content";
+import Script from "next/script";
+import React from "react";
 
 export interface SchemaProps {
   as: "website" | "article" | "blog" | "blogPosting" | "techArticle" | "webPage" | "organization";
@@ -55,8 +55,8 @@ export function Schema({
     "@type": schemaType,
     url,
   };
-  
-  schema.sameAs = Object.values(social).filter(Boolean)
+
+  schema.sameAs = Object.values(social).filter(Boolean);
 
   if (as === "website") {
     schema.name = title;

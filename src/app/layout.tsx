@@ -3,12 +3,12 @@ import "@/once-ui/tokens/index.scss";
 
 import classNames from "classnames";
 
+import { baseURL, effects, font, home, style } from "@/app/resources";
 import { Footer, Header, RouteGuard } from "@/components";
-import { baseURL, effects, style, font, home } from "@/app/resources";
 
 import { Background, Column, Flex, ThemeProvider, ToastProvider } from "@/once-ui/components";
-import { opacity, SpacingToken } from "@/once-ui/types";
 import { Meta } from "@/once-ui/modules";
+import type { SpacingToken, opacity } from "@/once-ui/types";
 
 export async function generateMetadata() {
   return Meta.generate({
@@ -77,7 +77,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
                 x: effects.mask.x,
                 y: effects.mask.y,
                 radius: effects.mask.radius,
-                cursor: effects.mask.cursor
+                cursor: effects.mask.cursor,
               }}
               gradient={{
                 display: effects.gradient.display,
@@ -112,16 +112,9 @@ export default async function RootLayout({ children }: RootLayoutProps) {
                 color: effects.lines.color,
               }}
             />
-            <Flex fillWidth minHeight="16" hide="s"></Flex>
+            <Flex fillWidth minHeight="16" hide="s" />
             <Header />
-            <Flex
-              zIndex={0}
-              fillWidth
-              paddingY="l"
-              paddingX="l"
-              horizontal="center"
-              flex={1}
-            >
+            <Flex zIndex={0} fillWidth paddingY="l" paddingX="l" horizontal="center" flex={1}>
               <Flex horizontal="center" fillWidth minHeight="0">
                 <RouteGuard>{children}</RouteGuard>
               </Flex>

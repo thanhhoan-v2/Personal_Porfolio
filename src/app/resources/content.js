@@ -64,15 +64,17 @@ const home = {
     display: true,
     title: (
       <>
-        I&rsquo;m <strong className="ml-4">available</strong>&nbsp;for full-time works & internships.
+        I&rsquo;m <strong className="ml-4">available</strong>&nbsp;for full-time works &
+        internships.
       </>
     ),
     href: "https://piz-one.vercel.app/",
   },
   subline: (
     <>
-      I&rsquo;m Hoàn, a Computer Science graduate who thrives in fast-paced, collaborative environments
-      and is passionate about learning new technologies while building scalable web applications.
+      I&rsquo;m Hoàn, a Computer Science graduate who thrives in fast-paced, collaborative
+      environments and is passionate about learning new technologies while building scalable web
+      applications.
     </>
   ),
 };

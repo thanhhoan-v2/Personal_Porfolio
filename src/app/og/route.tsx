@@ -1,12 +1,12 @@
-import { ImageResponse } from "next/og";
 import { baseURL } from "@/app/resources";
 import { person } from "@/app/resources/content";
+import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
 
 export async function GET(request: Request) {
-  let url = new URL(request.url);
-  let title = url.searchParams.get("title") || "Portfolio";
+  const url = new URL(request.url);
+  const title = url.searchParams.get("title") || "Portfolio";
   /*
   const font = fetch(new URL("../../../public/fonts/Inter.ttf", import.meta.url)).then((res) =>
     res.arrayBuffer(),

@@ -195,11 +195,7 @@ export default function About() {
 
           {about.technical.display && (
             <>
-              <Heading
-                as="h2"
-                id={about.technical.title}
-                variant="display-strong-s"
-              >
+              <Heading as="h2" id={about.technical.title} variant="display-strong-s">
                 {about.technical.title}
               </Heading>
               <Column fillWidth gap="l" marginBottom="40">
@@ -322,8 +318,6 @@ export default function About() {
               </Column>
             </>
           )}
-
-
         </Column>
       </Flex>
     </Column>

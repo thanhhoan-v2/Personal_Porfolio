@@ -1,5 +1,5 @@
-import fs from "fs";
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
 import matter from "gray-matter";
 
 type Team = {
@@ -21,7 +21,7 @@ type Metadata = {
   github_url?: string;
 };
 
-import { notFound } from 'next/navigation';
+import { notFound } from "next/navigation";
 
 function getMDXFiles(dir: string) {
   if (!fs.existsSync(dir)) {
@@ -32,9 +32,9 @@ function getMDXFiles(dir: string) {
 }
 
 function readMDXFile(filePath: string) {
-    if (!fs.existsSync(filePath)) {
-        notFound();
-    }
+  if (!fs.existsSync(filePath)) {
+    notFound();
+  }
 
   const rawContent = fs.readFileSync(filePath, "utf-8");
   const { data, content } = matter(rawContent);

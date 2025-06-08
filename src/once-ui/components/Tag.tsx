@@ -1,22 +1,15 @@
 "use client";
 
-import React, { forwardRef, ReactNode } from "react";
 import classNames from "classnames";
+import type React from "react";
+import { type ReactNode, forwardRef } from "react";
 
-import { Flex, Text, Icon } from ".";
+import { Flex, Icon, Text } from ".";
+import type { IconName } from "../icons";
 import styles from "./Tag.module.scss";
-import { IconName } from "../icons";
 
 interface TagProps extends React.ComponentProps<typeof Flex> {
-  variant?:
-    | "brand"
-    | "accent"
-    | "warning"
-    | "success"
-    | "danger"
-    | "neutral"
-    | "info"
-    | "gradient";
+  variant?: "brand" | "accent" | "warning" | "success" | "danger" | "neutral" | "info" | "gradient";
   size?: "s" | "m" | "l";
   label?: string;
   prefixIcon?: IconName;
@@ -36,7 +29,7 @@ const Tag = forwardRef<HTMLDivElement, TagProps>(
       children,
       ...rest
     },
-    ref
+    ref,
   ) => {
     const paddingSize = size === "s" ? "2" : "4";
 
@@ -49,20 +42,11 @@ const Tag = forwardRef<HTMLDivElement, TagProps>(
         radius="l"
         gap="4"
         ref={ref}
-        className={classNames(
-          styles.tag,
-          styles[variant],
-          styles[size],
-          className
-        )}
+        className={classNames(styles.tag, styles[variant], styles[size], className)}
         {...rest}
       >
         {prefixIcon && <Icon name={prefixIcon} size="xs" />}
-        <Flex
-          style={{ userSelect: "none" }}
-          paddingX={paddingSize}
-          vertical="center"
-        >
+        <Flex style={{ userSelect: "none" }} paddingX={paddingSize} vertical="center">
           <Text as="span" variant="label-default-s">
             {label || children}
           </Text>
@@ -70,7 +54,7 @@ const Tag = forwardRef<HTMLDivElement, TagProps>(
         {suffixIcon && <Icon name={suffixIcon} size="xs" />}
       </Flex>
     );
-  }
+  },
 );
 
 Tag.displayName = "Tag";

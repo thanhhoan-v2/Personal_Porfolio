@@ -1,18 +1,18 @@
-import { MDXRemote, MDXRemoteProps } from "next-mdx-remote/rsc";
-import React, { ReactNode } from "react";
+import { MDXRemote, type MDXRemoteProps } from "next-mdx-remote/rsc";
 import dynamic from "next/dynamic";
+import React, { type ReactNode } from "react";
 
 import {
   Heading,
   HeadingLink,
+  InlineCode,
   SmartImage,
   SmartLink,
   Text,
-  InlineCode,
 } from "@/once-ui/components";
+import type { SmartImageProps } from "@/once-ui/components/SmartImage";
+import type { TextProps } from "@/once-ui/interfaces";
 import { CodeBlock } from "@/once-ui/modules/code/CodeBlock";
-import { TextProps } from "@/once-ui/interfaces";
-import { SmartImageProps } from "@/once-ui/components/SmartImage";
 
 type CustomLinkProps = React.AnchorHTMLAttributes<HTMLAnchorElement> & {
   href: string;
@@ -68,17 +68,22 @@ function createImage({ alt, src, ...props }: SmartImageProps & { src: string }) 
 function slugify(str: string | ReactNode): string {
   // Convert ReactNode to string
   let text: string;
-  if (typeof str === 'string') {
+  if (typeof str === "string") {
     text = str;
   } else if (React.isValidElement(str)) {
     // Handle React elements by extracting text content
     text = extractTextFromElement(str);
   } else if (Array.isArray(str)) {
     // Handle arrays of React elements/text
-    text = str.map(item =>
-      typeof item === 'string' ? item :
-        React.isValidElement(item) ? extractTextFromElement(item) : ''
-    ).join('');
+    text = str
+      .map((item) =>
+        typeof item === "string"
+          ? item
+          : React.isValidElement(item)
+            ? extractTextFromElement(item)
+            : "",
+      )
+      .join("");
   } else {
     text = String(str);
   }
@@ -92,15 +97,21 @@ function slugify(str: string | ReactNode): string {
 }
 
 function extractTextFromElement(element: React.ReactElement): string {
-  if (typeof element.props.children === 'string') {
+  if (typeof element.props.children === "string") {
     return element.props.children;
-  } else if (Array.isArray(element.props.children)) {
-    return element.props.children.map((child: any) =>
-      typeof child === 'string' ? child :
-        React.isValidElement(child) ? extractTextFromElement(child) : ''
-    ).join('');
   }
-  return '';
+  if (Array.isArray(element.props.children)) {
+    return element.props.children
+      .map((child: any) =>
+        typeof child === "string"
+          ? child
+          : React.isValidElement(child)
+            ? extractTextFromElement(child)
+            : "",
+      )
+      .join("");
+  }
+  return "";
 }
 
 function createHeading(as: "h1" | "h2" | "h3" | "h4" | "h5" | "h6") {
@@ -143,11 +154,11 @@ function createInlineCode({ children }: { children: ReactNode }) {
 
 function createCodeBlock(props: any) {
   // For pre tags that contain code blocks
-  if (props.children && props.children.props && props.children.props.className) {
+  if (props.children?.props?.className) {
     const { className, children } = props.children.props;
 
     // Extract language from className (format: language-xxx)
-    const language = className.replace('language-', '');
+    const language = className.replace("language-", "");
     const label = language.charAt(0).toUpperCase() + language.slice(1);
 
     return (
@@ -158,8 +169,8 @@ function createCodeBlock(props: any) {
           {
             code: children,
             language,
-            label
-          }
+            label,
+          },
         ]}
         copyButton={true}
       />
@@ -186,18 +197,18 @@ const components = {
   Text,
   CodeBlock,
   InlineCode,
-  Accordion: dynamic(() => import("@/once-ui/components").then(mod => mod.Accordion)),
-  AccordionGroup: dynamic(() => import("@/once-ui/components").then(mod => mod.AccordionGroup)),
-  Table: dynamic(() => import("@/once-ui/components").then(mod => mod.Table)),
-  Feedback: dynamic(() => import("@/once-ui/components").then(mod => mod.Feedback)),
-  Button: dynamic(() => import("@/once-ui/components").then(mod => mod.Button)),
-  Card: dynamic(() => import("@/once-ui/components").then(mod => mod.Card)),
-  Grid: dynamic(() => import("@/once-ui/components").then(mod => mod.Grid)),
-  Row: dynamic(() => import("@/once-ui/components").then(mod => mod.Row)),
-  Column: dynamic(() => import("@/once-ui/components").then(mod => mod.Column)),
-  Icon: dynamic(() => import("@/once-ui/components").then(mod => mod.Icon)),
-  SmartImage: dynamic(() => import("@/once-ui/components").then(mod => mod.SmartImage)),
-  SmartLink: dynamic(() => import("@/once-ui/components").then(mod => mod.SmartLink)),
+  Accordion: dynamic(() => import("@/once-ui/components").then((mod) => mod.Accordion)),
+  AccordionGroup: dynamic(() => import("@/once-ui/components").then((mod) => mod.AccordionGroup)),
+  Table: dynamic(() => import("@/once-ui/components").then((mod) => mod.Table)),
+  Feedback: dynamic(() => import("@/once-ui/components").then((mod) => mod.Feedback)),
+  Button: dynamic(() => import("@/once-ui/components").then((mod) => mod.Button)),
+  Card: dynamic(() => import("@/once-ui/components").then((mod) => mod.Card)),
+  Grid: dynamic(() => import("@/once-ui/components").then((mod) => mod.Grid)),
+  Row: dynamic(() => import("@/once-ui/components").then((mod) => mod.Row)),
+  Column: dynamic(() => import("@/once-ui/components").then((mod) => mod.Column)),
+  Icon: dynamic(() => import("@/once-ui/components").then((mod) => mod.Icon)),
+  SmartImage: dynamic(() => import("@/once-ui/components").then((mod) => mod.SmartImage)),
+  SmartLink: dynamic(() => import("@/once-ui/components").then((mod) => mod.SmartLink)),
 };
 
 type CustomMDXProps = MDXRemoteProps & {
@@ -205,7 +216,5 @@ type CustomMDXProps = MDXRemoteProps & {
 };
 
 export function CustomMDX(props: CustomMDXProps) {
-  return (
-    <MDXRemote {...props} components={{ ...components, ...(props.components || {}) }} />
-  );
+  return <MDXRemote {...props} components={{ ...components, ...(props.components || {}) }} />;
 }

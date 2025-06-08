@@ -1,10 +1,20 @@
 import React from "react";
 
-import { Heading, Flex, Text, Button, Avatar, RevealFx, Column, Badge, Row } from "@/once-ui/components";
 import { Projects } from "@/components/work/Projects";
+import {
+  Avatar,
+  Badge,
+  Button,
+  Column,
+  Flex,
+  Heading,
+  RevealFx,
+  Row,
+  Text,
+} from "@/once-ui/components";
 
 import { baseURL, routes } from "@/app/resources";
-import { home, about, person, newsletter } from "@/app/resources/content";
+import { about, home, newsletter, person } from "@/app/resources/content";
 import { Mailchimp } from "@/components";
 import { Posts } from "@/components/blog/Posts";
 import { Meta, Schema } from "@/once-ui/modules";
@@ -37,9 +47,22 @@ export default function Home() {
       <Column fillWidth paddingY="24" gap="m">
         <Column maxWidth="s">
           {home.featured && (
-            <RevealFx fillWidth horizontal="start" paddingTop="16" paddingBottom="32" paddingLeft="12">
-              <Badge background="brand-alpha-weak" paddingX="12" paddingY="4" onBackground="neutral-strong" textVariant="label-default-s" arrow={false}
-                href={home.featured.href}>
+            <RevealFx
+              fillWidth
+              horizontal="start"
+              paddingTop="16"
+              paddingBottom="32"
+              paddingLeft="12"
+            >
+              <Badge
+                background="brand-alpha-weak"
+                paddingX="12"
+                paddingY="4"
+                onBackground="neutral-strong"
+                textVariant="label-default-s"
+                arrow={false}
+                href={home.featured.href}
+              >
                 <Row paddingY="2">{home.featured.title}</Row>
               </Badge>
             </RevealFx>

@@ -1,12 +1,13 @@
 "use client";
 
-import React, { ReactNode, forwardRef } from "react";
-import { ElementType } from "./ElementType";
 import classNames from "classnames";
+import type React from "react";
+import { type ReactNode, forwardRef } from "react";
+import { ElementType } from "./ElementType";
 
-import { Spinner, Icon, Arrow, Flex } from ".";
+import { Arrow, Flex, Icon, Spinner } from ".";
+import type { IconName } from "../icons";
 import styles from "./Button.module.scss";
-import { IconName } from "../icons";
 
 interface CommonProps {
   variant?: "primary" | "secondary" | "tertiary" | "danger";
@@ -36,10 +37,8 @@ interface CommonProps {
   arrowIcon?: boolean;
 }
 
-export type ButtonProps = CommonProps &
-  React.ButtonHTMLAttributes<HTMLButtonElement>;
-export type AnchorProps = CommonProps &
-  React.AnchorHTMLAttributes<HTMLAnchorElement>;
+export type ButtonProps = CommonProps & React.ButtonHTMLAttributes<HTMLButtonElement>;
+export type AnchorProps = CommonProps & React.AnchorHTMLAttributes<HTMLAnchorElement>;
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps | AnchorProps>(
   (
@@ -62,7 +61,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps | AnchorProps>(
       style,
       ...props
     },
-    ref
+    ref,
   ) => {
     const iconSize = size === "l" ? "s" : size === "m" ? "s" : "xs";
     const radiusSize = size === "s" || size === "m" ? "m" : "l";
@@ -79,17 +78,17 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps | AnchorProps>(
           radius === "none"
             ? "radius-none"
             : radius
-            ? `radius-${radiusSize}-${radius}`
-            : `radius-${radiusSize}`,
+              ? `radius-${radiusSize}-${radius}`
+              : `radius-${radiusSize}`,
           "text-decoration-none",
           "button",
           "cursor-interactive",
           {
-            ["fill-width"]: fillWidth,
-            ["fit-width"]: !fillWidth,
-            ["justify-" + justifyContent]: justifyContent,
+            "fill-width": fillWidth,
+            "fit-width": !fillWidth,
+            [`justify-${justifyContent}`]: justifyContent,
           },
-          className
+          className,
         )}
         style={style}
         {...props}
@@ -112,7 +111,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps | AnchorProps>(
             style={{
               marginLeft: "calc(-1 * var(--static-space-4))",
             }}
-            trigger={"#" + id}
+            trigger={`#${id}`}
             scale={size === "s" ? 0.8 : size === "m" ? 0.9 : 1}
             color={variant === "primary" ? "onSolid" : "onBackground"}
           />
@@ -120,7 +119,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps | AnchorProps>(
         {suffixIcon && <Icon name={suffixIcon} size={iconSize} />}
       </ElementType>
     );
-  }
+  },
 );
 
 Button.displayName = "Button";

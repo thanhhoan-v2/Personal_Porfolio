@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { Flex, SmartImage, IconButton } from ".";
+import { useEffect, useRef, useState } from "react";
+import { Flex, IconButton, SmartImage } from ".";
 import styles from "./CompareImage.module.scss";
 
 interface SideContent {
@@ -82,13 +82,7 @@ export const CompareImage = ({ leftContent, rightContent, ...rest }: CompareImag
   }, []);
 
   return (
-    <Flex
-      ref={containerRef}
-      aspectRatio="16/9"
-      fillWidth
-      style={{ touchAction: "none" }}
-      {...rest}
-    >
+    <Flex ref={containerRef} aspectRatio="16/9" fillWidth style={{ touchAction: "none" }} {...rest}>
       {renderContent(leftContent, `inset(0 ${100 - position}% 0 0)`)}
       {renderContent(rightContent, `inset(0 0 0 ${position}%)`)}
 

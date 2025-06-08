@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState, useEffect, useRef, ReactNode } from "react";
+import React, { useState, useEffect, useRef, type ReactNode } from "react";
 
 import "./CodeHighlight.css";
 import "./LineNumber.css";
 import styles from "./CodeBlock.module.scss";
 
-import { Flex, Button, IconButton, Scroller, Row, StyleOverlay } from "../../components";
+import { Button, Flex, IconButton, Row, Scroller, StyleOverlay } from "../../components";
 
 import Prism from "prismjs";
 import "prismjs/plugins/line-highlight/prism-line-highlight";
@@ -16,7 +16,7 @@ import "prismjs/components/prism-css";
 import "prismjs/components/prism-typescript";
 import "prismjs/components/prism-tsx";
 import classNames from "classnames";
-import { SpacingToken } from "../../types";
+import type { SpacingToken } from "../../types";
 
 type CodeInstance = {
   code: string | { content: string; error: string | null };

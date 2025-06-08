@@ -1,18 +1,12 @@
-import { Flex, IconButton, SmartLink, Text } from "@/once-ui/components";
 import { person, social } from "@/app/resources/content";
+import { Flex, IconButton, SmartLink, Text } from "@/once-ui/components";
 import styles from "./Footer.module.scss";
 
 export const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <Flex
-      as="footer"
-      fillWidth
-      padding="8"
-      horizontal="center"
-      mobileDirection="column"
-    >
+    <Flex as="footer" fillWidth padding="8" horizontal="center" mobileDirection="column">
       <Flex
         className={styles.mobile}
         maxWidth="m"
@@ -25,9 +19,7 @@ export const Footer = () => {
         <Text variant="body-default-s" onBackground="neutral-strong">
           <Text onBackground="neutral-weak">© {currentYear} /</Text>
           <Text paddingX="4">{person.name}</Text>
-          <Text onBackground="neutral-weak">
-            / Portfolio{" "}
-          </Text>
+          <Text onBackground="neutral-weak">/ Portfolio </Text>
         </Text>
         <Flex gap="16">
           {social.map(
@@ -45,7 +37,7 @@ export const Footer = () => {
           )}
         </Flex>
       </Flex>
-      <Flex height="80" show="s"></Flex>
+      <Flex height="80" show="s" />
     </Flex>
   );
 };

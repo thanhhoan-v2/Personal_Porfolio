@@ -1,24 +1,25 @@
 "use client";
 
-import React, {
-  useState,
-  useRef,
-  useEffect,
-  ReactNode,
-  forwardRef,
-  useImperativeHandle,
-  useCallback,
-} from "react";
 import {
-  useFloating,
-  shift,
-  offset,
-  flip,
-  size,
+  type Placement,
   autoUpdate,
-  Placement,
+  flip,
+  offset,
+  shift,
+  size,
+  useFloating,
 } from "@floating-ui/react-dom";
-import { Flex, Dropdown } from ".";
+import type React from "react";
+import {
+  type ReactNode,
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react";
+import { Dropdown, Flex } from ".";
 import styles from "./DropdownWrapper.module.scss";
 
 export interface DropdownWrapperProps {
@@ -169,9 +170,9 @@ const DropdownWrapper = forwardRef<HTMLDivElement, DropdownWrapperProps>(
         className={className}
         ref={wrapperRef}
         onClick={() => {
-            if (closeAfterClick) {
-                handleOpenChange(!isOpen);
-            }
+          if (closeAfterClick) {
+            handleOpenChange(!isOpen);
+          }
         }}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {

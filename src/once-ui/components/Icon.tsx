@@ -1,11 +1,12 @@
 "use client";
 
-import React, { forwardRef, useState, useEffect, ReactNode } from "react";
 import classNames from "classnames";
-import { IconType, } from "react-icons";
-import { iconLibrary, IconName } from "../icons"; 
-import { ColorScheme, ColorWeight } from "../types";
+import type React from "react";
+import { type ReactNode, forwardRef, useEffect, useState } from "react";
+import type { IconType } from "react-icons";
 import { Flex, Tooltip } from ".";
+import { type IconName, iconLibrary } from "../icons";
+import type { ColorScheme, ColorWeight } from "../types";
 import styles from "./Icon.module.scss";
 import iconStyles from "./IconButton.module.scss";
 
@@ -36,9 +37,9 @@ const Icon = forwardRef<HTMLDivElement, IconProps>(
     const IconComponent: IconType | undefined = iconLibrary[name];
     const [isTooltipVisible, setTooltipVisible] = useState(false);
     const [isHover, setIsHover] = useState(false);
-    
+
     let colorClass = "";
-    
+
     if (onBackground) {
       const [scheme, weight] = onBackground.split("-") as [ColorScheme, ColorWeight];
       colorClass = `${scheme}-on-background-${weight}`;

@@ -1,8 +1,9 @@
 "use client";
 
-import React, { forwardRef, useEffect, useState, useRef, useCallback } from "react";
 import { Column, Flex, Row, SmartLink, Text } from "@/once-ui/components";
 import { useHeadingLinks } from "@/once-ui/hooks/generateHeadingLinks";
+import type React from "react";
+import { forwardRef, useCallback, useEffect, useRef, useState } from "react";
 
 interface props extends React.ComponentProps<typeof Flex> {}
 
@@ -90,7 +91,7 @@ const HeadingNav = forwardRef<HTMLDivElement, props>(({ className, style, ...res
       const scrollPosition = window.scrollY;
 
       let activeId = headings[0]?.id;
-      let closestPosition = -Infinity;
+      let closestPosition = Number.NEGATIVE_INFINITY;
 
       headingPositions.forEach((position, id) => {
         if (position <= scrollPosition && position > closestPosition) {
@@ -201,7 +202,7 @@ const HeadingNav = forwardRef<HTMLDivElement, props>(({ className, style, ...res
             <Flex key={heading.id} fillWidth height="32" paddingX="4">
               <SmartLink
                 fillWidth
-                href={"#" + heading.id}
+                href={`#${heading.id}`}
                 onClick={(e) => {
                   e.preventDefault();
                   const target = document.getElementById(heading.id);

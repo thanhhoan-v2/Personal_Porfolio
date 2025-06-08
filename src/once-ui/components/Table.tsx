@@ -1,8 +1,8 @@
 "use client";
 
-import { Row } from "./Row";
+import { type ReactNode, useState } from "react";
 import { IconButton } from "./IconButton";
-import { useState, ReactNode } from "react";
+import { Row } from "./Row";
 
 type TableProps = {
   data: {
@@ -43,9 +43,8 @@ function Table({ data, onRowClick }: TableProps) {
 
     if (sortConfig.direction === "ascending") {
       return aValue.localeCompare(bValue);
-    } else {
-      return bValue.localeCompare(aValue);
     }
+    return bValue.localeCompare(aValue);
   });
 
   const headers = data.headers.map((header, index) => (
