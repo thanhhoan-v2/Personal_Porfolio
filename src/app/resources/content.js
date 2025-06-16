@@ -72,9 +72,8 @@ const home = {
   },
   subline: (
     <>
-      I&rsquo;m Hoàn, a Computer Science graduate who thrives in fast-paced, collaborative
-      environments and is passionate about learning new technologies while building scalable web
-      applications.
+      I&rsquo;m Hoàn, a person who thrives in fast-paced, collaborative environments and is
+      passionate about learning new technologies while building scalable web applications.
     </>
   ),
 };

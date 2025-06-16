@@ -164,7 +164,14 @@ export const Header = () => {
             textVariant="body-default-s"
             gap="20"
           >
-            <Flex hide="s">{display.time && <TimeDisplay timeZone={person.timezone} />}</Flex>
+            {/* <Flex hide="s">{display.time && <TimeDisplay timeZone={person.timezone} />}</Flex> */}
+            <ToggleButton
+              prefixIcon="openLink"
+              href="https://drive.google.com/file/d/1UDNoD1rTMwKYtaLIbLz9yQ2UWqNNT3E_/view?usp=sharing"
+              label="My Resume"
+              variant="outline"
+              className="s-flex-hide"
+            />
           </Flex>
         </Flex>
       </Flex>
